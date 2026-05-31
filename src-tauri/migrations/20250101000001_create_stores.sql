@@ -1,0 +1,8 @@
+CREATE TABLE IF NOT EXISTS stores (
+    id TEXT NOT NULL PRIMARY KEY,
+    store_code TEXT NOT NULL UNIQUE,
+    name TEXT NOT NULL,
+    address TEXT NOT NULL,
+    phone TEXT,
+    active INTEGER NOT NULL DEFAULT 1
+);

@@ -1,0 +1,2 @@
+-- This migration has been replaced by individual per-entity migrations.
+-- See: 20250101000001_create_stores.sql through 20250101000009_create_sale_items.sql
