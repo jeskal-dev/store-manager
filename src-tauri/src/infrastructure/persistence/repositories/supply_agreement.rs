@@ -11,6 +11,7 @@ use crate::shared::criteria::{Criteria, PaginatedResult, PaginationMeta};
 
 use super::search_builder::{push_filter_condition, push_filter_value, push_sort};
 
+#[derive(Clone)]
 pub struct SqliteSupplyAgreementRepository {
     pool: SqlitePool,
 }
@@ -147,6 +148,21 @@ impl Repository<SupplyAgreement> for SqliteSupplyAgreementRepository {
             .bind(id)
             .execute(&self.pool)
             .await?;
+        Ok(())
+    }
+
+    async fn delete_many(&self, ids: &[Uuid]) -> Result<()> {
+        let mut qb = sqlx::QueryBuilder::new("DELETE FROM supply_agreements WHERE id IN (");
+        let mut first = true;
+        for id in ids {
+            if !first {
+                qb.push(", ");
+            }
+            qb.push_bind(id);
+            first = false;
+        }
+        qb.push(")");
+        qb.build().execute(&self.pool).await?;
         Ok(())
     }
 }

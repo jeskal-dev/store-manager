@@ -5,6 +5,11 @@ use sqlx::sqlite::SqlitePoolOptions;
 use sqlx::SqlitePool;
 use tauri::Manager;
 
+use crate::application::use_cases::inventory::{ForInventoryInteractor, UpdateInventoryInteractor};
+use crate::application::use_cases::product::{ForProductInteractor, UpdateProductInteractor};
+use crate::application::use_cases::supply_agreement::{
+    ForSupplyAgreementInteractor, UpdateSupplyAgreementInteractor,
+};
 use crate::infrastructure::persistence::repositories::inventory::SqliteInventoryRepository;
 use crate::infrastructure::persistence::repositories::product::SqliteProductRepository;
 use crate::infrastructure::persistence::repositories::purchase::SqlitePurchaseRepository;
@@ -23,7 +28,11 @@ pub struct Repositories {
     pub sales: SqliteSalesRepository,
 }
 
-pub struct UseCases {}
+pub struct UseCases {
+    pub product: ForProductInteractor<SqliteProductRepository>,
+    pub inventory: ForInventoryInteractor<SqliteInventoryRepository>,
+    pub supply_agreement: ForSupplyAgreementInteractor<SqliteSupplyAgreementRepository>,
+}
 
 pub struct AppState {
     pub repos: Repositories,
@@ -45,7 +54,11 @@ pub fn setup_app(app: &mut tauri::App) -> Result<()> {
         sales: SqliteSalesRepository::new(pool),
     };
 
-    let use_cases = UseCases {};
+    let use_cases = UseCases {
+        product: ForProductInteractor::new(repos.product.clone()),
+        inventory: ForInventoryInteractor::new(repos.inventory.clone()),
+        supply_agreement: ForSupplyAgreementInteractor::new(repos.supply_agreement.clone()),
+    };
 
     app.manage(AppState { repos, use_cases });
 

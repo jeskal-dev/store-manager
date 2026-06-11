@@ -1,9 +1,11 @@
-use crate::shared::criteria::{Criteria, FilterItem, Operator, Pagination, SortOrder};
+use crate::shared::criteria::{Criteria, FilterItem, Operator, Pagination, Sort, SortOrder};
 use serde::Deserialize;
+use ts_rs::TS;
 use uuid::Uuid;
 use validator::Validate;
 
-#[derive(Debug, Deserialize, Validate)]
+#[derive(Debug, Deserialize, Validate, TS)]
+#[ts(export)]
 pub struct PaginationInput {
     #[validate(range(min = 1, message = "Page must be at least 1"))]
     pub page: u32,
@@ -24,7 +26,8 @@ impl TryInto<Pagination> for PaginationInput {
     }
 }
 
-#[derive(Debug, Deserialize, Validate)]
+#[derive(Debug, Deserialize, Validate, TS)]
+#[ts(export)]
 pub struct FilterItemInput {
     #[validate(length(min = 1, message = "Filter field cannot be empty"))]
     pub field: String,
@@ -32,41 +35,37 @@ pub struct FilterItemInput {
     pub value: serde_json::Value,
 }
 
-impl TryInto<FilterItem> for FilterItemInput {
+impl TryInto<FilterItem<()>> for FilterItemInput {
     type Error = anyhow::Error;
 
-    fn try_into(self) -> Result<FilterItem, Self::Error> {
+    fn try_into(self) -> Result<FilterItem<()>, Self::Error> {
         self.validate()?;
-        Ok(FilterItem {
-            field: self.field,
-            operator: self.operator,
-            value: self.value,
-            ..Default::default()
-        })
+        Ok(FilterItem::new(self.field, self.operator, self.value))
     }
 }
 
-#[derive(Debug, Deserialize, Validate)]
+#[derive(Debug, Deserialize, Validate, TS)]
+#[ts(export)]
 pub struct SortInput {
     #[validate(length(min = 1, message = "Sort field cannot be empty"))]
     pub field: String,
     pub order: SortOrder,
 }
 
-impl TryInto<SortItem> for SortInput {
+impl TryInto<Sort> for SortInput {
     type Error = anyhow::Error;
 
-    fn try_into(self) -> Result<SortItem, Self::Error> {
+    fn try_into(self) -> Result<Sort, Self::Error> {
         self.validate()?;
-        Ok(SortItem {
+        Ok(Sort {
             field: self.field,
             order: self.order,
-            ..Default::default()
         })
     }
 }
 
-#[derive(Debug, Deserialize, Validate, Default)]
+#[derive(Debug, Deserialize, Validate, Default, TS)]
+#[ts(export)]
 pub struct CriteriaInput {
     #[validate(nested)] // Valida el struct interno si está presente
     pub pagination: Option<PaginationInput>,
@@ -84,38 +83,38 @@ impl TryInto<Criteria<()>> for CriteriaInput {
     fn try_into(self) -> Result<Criteria<()>, Self::Error> {
         self.validate()?;
 
-        Ok(Criteria {
-            pagination: self.pagination.map(|v| v.try_into()).transpose()?,
-            filters: self
-                .filters
-                .map(|arr| {
-                    arr.into_iter()
-                        .map(|v| v.try_into())
-                        .collect::<Result<Vec<_>, _>>()
-                })
-                .transpose()?,
-            global_filters: self
-                .global_filter
-                .map(|arr| {
-                    arr.into_iter()
-                        .map(|v| v.try_into())
-                        .collect::<Result<Vec<_>, _>>()
-                })
-                .transpose()?,
-            sort: self
-                .sort
-                .map(|arr| {
-                    arr.into_iter()
-                        .map(|v| v.try_into())
-                        .collect::<Result<Vec<_>, _>>()
-                })
-                .transpose()?,
-            ..Default::default()
-        })
+        let mut criteria = Criteria::new();
+        criteria.pagination = self.pagination.map(|v| v.try_into()).transpose()?;
+        criteria.filters = self
+            .filters
+            .map(|arr| {
+                arr.into_iter()
+                    .map(|v| v.try_into())
+                    .collect::<Result<Vec<_>, _>>()
+            })
+            .transpose()?;
+        criteria.global_filters = self
+            .global_filter
+            .map(|arr| {
+                arr.into_iter()
+                    .map(|v| v.try_into())
+                    .collect::<Result<Vec<_>, _>>()
+            })
+            .transpose()?;
+        criteria.sort = self
+            .sort
+            .map(|arr| {
+                arr.into_iter()
+                    .map(|v| v.try_into())
+                    .collect::<Result<Vec<_>, _>>()
+            })
+            .transpose()?;
+        Ok(criteria)
     }
 }
 
-#[derive(Debug, Deserialize, Validate)]
+#[derive(Debug, Deserialize, Validate, TS)]
+#[ts(export)]
 pub struct ByIDInput {
     #[validate(length(min = 1, message = "ID cannot be empty"))]
     pub id: String,

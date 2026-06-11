@@ -1,7 +1,10 @@
+use rust_decimal::Decimal;
 use serde::Deserialize;
+use ts_rs::TS;
 use validator::Validate;
 
-#[derive(Debug, Deserialize, Validate)]
+#[derive(Debug, Deserialize, Validate, TS)]
+#[ts(export)]
 pub struct CreateProductInput {
     #[validate(length(
         min = 1,
@@ -17,13 +20,19 @@ pub struct CreateProductInput {
     ))]
     pub name: String,
 
-    #[validate]
-    pub initial_price: f64,
+    pub initial_price: String,
 
     pub active: bool,
 }
 
-#[derive(Debug, Deserialize, Validate)]
+impl CreateProductInput {
+    pub fn parse_initial_price(&self) -> anyhow::Result<Decimal> {
+        Ok(self.initial_price.parse::<Decimal>()?)
+    }
+}
+
+#[derive(Debug, Deserialize, Validate, TS)]
+#[ts(export)]
 pub struct UpdateProductInput {
     #[validate(length(
         min = 1,
@@ -39,9 +48,18 @@ pub struct UpdateProductInput {
     ))]
     #[serde(default)]
     pub name: Option<String>,
-    #[validate]
+
     #[serde(default)]
-    pub initial_price: Option<f64>,
+    pub initial_price: Option<String>,
     #[serde(default)]
     pub active: Option<bool>,
+}
+
+impl UpdateProductInput {
+    pub fn parse_initial_price(&self) -> anyhow::Result<Option<Decimal>> {
+        match &self.initial_price {
+            Some(s) => Ok(Some(s.parse::<Decimal>()?)),
+            None => Ok(None),
+        }
+    }
 }

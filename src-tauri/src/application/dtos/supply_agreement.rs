@@ -1,29 +1,45 @@
+use rust_decimal::Decimal;
 use serde::Deserialize;
+use ts_rs::TS;
 use validator::Validate;
 
-#[derive(Debug, Deserialize, Validate)]
+#[derive(Debug, Deserialize, Validate, TS)]
+#[ts(export)]
 pub struct CreateSupplyAgreementInput {
-    #[validate]
     pub product_id: String,
-
-    #[validate]
     pub supplier_id: String,
-
-    pub cost: Option<f64>,
-
+    pub cost: Option<String>,
     pub active: bool,
 }
 
-#[derive(Debug, Deserialize, Validate)]
+impl CreateSupplyAgreementInput {
+    pub fn parse_cost(&self) -> anyhow::Result<Option<Decimal>> {
+        match &self.cost {
+            Some(s) => Ok(Some(s.parse::<Decimal>()?)),
+            None => Ok(None),
+        }
+    }
+}
+
+#[derive(Debug, Deserialize, Validate, TS)]
+#[ts(export)]
 pub struct UpdateSupplyAgreementInput {
-    #[validate]
     #[serde(default)]
     pub product_id: Option<String>,
-    #[validate]
     #[serde(default)]
     pub supplier_id: Option<String>,
     #[serde(default)]
-    pub cost: Option<Option<f64>>,
+    pub cost: Option<Option<String>>,
     #[serde(default)]
     pub active: Option<bool>,
+}
+
+impl UpdateSupplyAgreementInput {
+    pub fn parse_cost(&self) -> anyhow::Result<Option<Option<Decimal>>> {
+        match &self.cost {
+            Some(Some(s)) => Ok(Some(Some(s.parse::<Decimal>()?))),
+            Some(None) => Ok(Some(None)),
+            None => Ok(None),
+        }
+    }
 }

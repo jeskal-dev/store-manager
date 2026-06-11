@@ -28,4 +28,5 @@ pub trait Repository<T: Send + Sync>: Send + Sync {
     async fn create(&self, entity: &T) -> Result<()>;
     async fn update(&self, entity: &T) -> Result<()>;
     async fn delete(&self, id: Uuid) -> Result<()>;
+    async fn delete_many(&self, ids: &[Uuid]) -> Result<()>;
 }

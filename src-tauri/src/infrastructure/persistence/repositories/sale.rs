@@ -40,6 +40,7 @@ impl From<SalesRow> for Sales {
     }
 }
 
+#[derive(Clone)]
 pub struct SqliteSalesRepository {
     pool: SqlitePool,
 }
@@ -246,6 +247,25 @@ impl Repository<Sales> for SqliteSalesRepository {
             .bind(id)
             .execute(&mut *tx)
             .await?;
+
+        tx.commit().await?;
+        Ok(())
+    }
+
+    async fn delete_many(&self, ids: &[Uuid]) -> Result<()> {
+        let mut tx = self.pool.begin().await?;
+
+        for id in ids {
+            sqlx::query("DELETE FROM sale_items WHERE sale_id = ?")
+                .bind(id)
+                .execute(&mut *tx)
+                .await?;
+
+            sqlx::query("DELETE FROM sales WHERE id = ?")
+                .bind(id)
+                .execute(&mut *tx)
+                .await?;
+        }
 
         tx.commit().await?;
         Ok(())

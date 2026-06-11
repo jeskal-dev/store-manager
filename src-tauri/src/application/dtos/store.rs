@@ -1,7 +1,9 @@
 use serde::Deserialize;
+use ts_rs::TS;
 use validator::Validate;
 
-#[derive(Debug, Deserialize, Validate)]
+#[derive(Debug, Deserialize, Validate, TS)]
+#[ts(export)]
 pub struct CreateStoreInput {
     #[validate(length(
         min = 1,
@@ -30,7 +32,8 @@ pub struct CreateStoreInput {
     pub active: bool,
 }
 
-#[derive(Debug, Deserialize, Validate)]
+#[derive(Debug, Deserialize, Validate, TS)]
+#[ts(export)]
 pub struct UpdateStoreInput {
     #[validate(length(
         min = 1,

@@ -1,7 +1,10 @@
+use rust_decimal::Decimal;
 use serde::Deserialize;
+use ts_rs::TS;
 use validator::Validate;
 
-#[derive(Debug, Deserialize, Validate)]
+#[derive(Debug, Deserialize, Validate, TS)]
+#[ts(export)]
 pub struct CreateInventoryInput {
     #[validate(length(
         min = 1,
@@ -10,19 +13,14 @@ pub struct CreateInventoryInput {
     ))]
     pub inventory_code: String,
 
-    #[validate]
     pub store_id: String,
 
-    #[validate]
     pub product_id: String,
 
-    #[validate]
     pub quantity: i32,
 
-    #[validate]
-    pub price_local: f64,
+    pub price_local: String,
 
-    #[validate]
     pub min_stock: i32,
 
     #[validate(length(min = 1, message = "Status cannot be empty"))]
@@ -31,7 +29,14 @@ pub struct CreateInventoryInput {
     pub active: bool,
 }
 
-#[derive(Debug, Deserialize, Validate)]
+impl CreateInventoryInput {
+    pub fn parse_price_local(&self) -> anyhow::Result<Decimal> {
+        Ok(self.price_local.parse::<Decimal>()?)
+    }
+}
+
+#[derive(Debug, Deserialize, Validate, TS)]
+#[ts(export)]
 pub struct UpdateInventoryInput {
     #[validate(length(
         min = 1,
@@ -40,19 +45,14 @@ pub struct UpdateInventoryInput {
     ))]
     #[serde(default)]
     pub inventory_code: Option<String>,
-    #[validate]
     #[serde(default)]
     pub store_id: Option<String>,
-    #[validate]
     #[serde(default)]
     pub product_id: Option<String>,
-    #[validate]
     #[serde(default)]
     pub quantity: Option<i32>,
-    #[validate]
     #[serde(default)]
-    pub price_local: Option<f64>,
-    #[validate]
+    pub price_local: Option<String>,
     #[serde(default)]
     pub min_stock: Option<i32>,
     #[validate(length(min = 1, message = "Status cannot be empty"))]
@@ -60,4 +60,13 @@ pub struct UpdateInventoryInput {
     pub status: Option<String>,
     #[serde(default)]
     pub active: Option<bool>,
+}
+
+impl UpdateInventoryInput {
+    pub fn parse_price_local(&self) -> anyhow::Result<Option<Decimal>> {
+        match &self.price_local {
+            Some(s) => Ok(Some(s.parse::<Decimal>()?)),
+            None => Ok(None),
+        }
+    }
 }

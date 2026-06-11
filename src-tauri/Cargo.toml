@@ -7,6 +7,9 @@ edition = "2021"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
+[package.metadata.ts]
+export_dir = "../src/types"
+
 [lib]
 # The `_lib` suffix may seem redundant but it is necessary
 # to make the lib name unique and wouldn't conflict with the bin name.
@@ -31,4 +34,6 @@ rust_decimal_macros = "1.40.0"
 strum_macros = "0.28.0"
 sqlx = { version = "0.9.0", features = ["runtime-tokio", "sqlite", "rust_decimal", "uuid", "chrono", "migrate"] }
 async-trait = "0.1.89"
+regex = "1"
+ts-rs = { version = "10", features = ["serde-compat", "serde-json-impl"] }
 validator = { version = "0.20.0", features = ["derive"] }
