@@ -16,6 +16,19 @@ pub enum Operator {
     In,
 }
 
+#[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(rename_all = "lowercase")]
+pub enum SortOrder {
+    Asc,
+    Desc,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct Sort {
+    pub field: String,
+    pub order: SortOrder,
+}
+
 #[derive(Debug, Serialize, Deserialize)]
 pub struct FilterItem<T> {
     pub field: String,
@@ -75,6 +88,7 @@ pub struct Criteria<T> {
     pub pagination: Option<Pagination>,
     pub filters: Option<Vec<FilterItem<T>>>,
     pub global_filters: Option<Vec<FilterItem<T>>>,
+    pub sort: Option<Vec<Sort>>,
     #[serde(skip)]
     _phantom: PhantomData<T>,
 }
@@ -85,6 +99,7 @@ impl<T> Criteria<T> {
             pagination: None,
             filters: None,
             global_filters: None,
+            sort: None,
             _phantom: std::marker::PhantomData,
         }
     }
@@ -103,6 +118,11 @@ impl<T> Criteria<T> {
         self.global_filters = Some(global_filters);
         self
     }
+
+    pub fn with_sort(mut self, sort: Vec<Sort>) -> Self {
+        self.sort = Some(sort);
+        self
+    }
 }
 
 impl<T> Default for Criteria<T> {
@@ -117,6 +137,7 @@ impl<T> Clone for Criteria<T> {
             pagination: self.pagination.clone(),
             filters: self.filters.clone(),
             global_filters: self.global_filters.clone(),
+            sort: self.sort.clone(),
             _phantom: PhantomData,
         }
     }

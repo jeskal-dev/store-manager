@@ -2,7 +2,6 @@ use anyhow::Result;
 use chrono::{DateTime, Utc};
 use rust_decimal::Decimal;
 use serde::{Deserialize, Serialize};
-use sqlx::prelude::FromRow;
 use uuid::Uuid;
 
 use crate::domain::{
@@ -10,7 +9,7 @@ use crate::domain::{
     value_objects::common::{Code, Money, TextValue},
 };
 
-#[derive(Debug, Clone, Serialize, Deserialize, FromRow)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Purchase {
     pub id: Uuid,
     pub supplier_id: Option<Uuid>,

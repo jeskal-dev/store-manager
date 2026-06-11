@@ -10,7 +10,7 @@ pub fn run() {
     tauri::Builder::default()
         .plugin(tauri_plugin_opener::init())
         .setup(|app| {
-            sqlite::setup_database(app).expect("failed to initialize database");
+            sqlite::setup_app(app).expect("failed to initialize database");
             Ok(())
         })
         .invoke_handler(tauri::generate_handler![])

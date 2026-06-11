@@ -1,5 +1,12 @@
 use anyhow::Result;
 use serde::{Deserialize, Serialize};
+use sqlx::{
+    decode::Decode,
+    encode::IsNull,
+    error::BoxDynError,
+    sqlite::{SqliteArgumentsBuffer, SqliteTypeInfo, SqliteValueRef},
+    Encode, Sqlite, Type,
+};
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct InventoryStatus {
@@ -24,5 +31,24 @@ impl InventoryStatus {
             "ACTIVE" | "INACTIVE" | "PENDING" | "DISCONTINUED" => Ok(()),
             _ => Err(anyhow::anyhow!("Invalid inventory status")),
         }
+    }
+}
+
+impl Type<Sqlite> for InventoryStatus {
+    fn type_info() -> SqliteTypeInfo {
+        <String as Type<Sqlite>>::type_info()
+    }
+}
+
+impl Encode<'_, Sqlite> for InventoryStatus {
+    fn encode_by_ref(&self, args: &mut SqliteArgumentsBuffer) -> Result<IsNull, BoxDynError> {
+        <String as Encode<Sqlite>>::encode_by_ref(&self.value, args)
+    }
+}
+
+impl Decode<'_, Sqlite> for InventoryStatus {
+    fn decode(value: SqliteValueRef<'_>) -> Result<Self, BoxDynError> {
+        let s = <String as Decode<Sqlite>>::decode(value)?;
+        Ok(Self::new(s)?)
     }
 }

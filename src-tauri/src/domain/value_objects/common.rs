@@ -1,6 +1,13 @@
 use anyhow::Result;
 use rust_decimal::Decimal;
 use serde::{Deserialize, Serialize};
+use sqlx::{
+    decode::Decode,
+    encode::IsNull,
+    error::BoxDynError,
+    sqlite::{SqliteArgumentsBuffer, SqliteTypeInfo, SqliteValueRef},
+    Encode, Sqlite, Type,
+};
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct TextValue {
@@ -142,5 +149,128 @@ impl Quantity {
 
     pub fn value(&self) -> i32 {
         self.value
+    }
+}
+
+// ── sqlx impls for value objects ──
+
+impl Type<Sqlite> for TextValue {
+    fn type_info() -> SqliteTypeInfo {
+        <String as Type<Sqlite>>::type_info()
+    }
+}
+
+impl Encode<'_, Sqlite> for TextValue {
+    fn encode_by_ref(&self, args: &mut SqliteArgumentsBuffer) -> Result<IsNull, BoxDynError> {
+        <String as Encode<Sqlite>>::encode_by_ref(&self.value, args)
+    }
+}
+
+impl Decode<'_, Sqlite> for TextValue {
+    fn decode(value: SqliteValueRef<'_>) -> Result<Self, BoxDynError> {
+        let s = <String as Decode<Sqlite>>::decode(value)?;
+        let max_len = s.len();
+        Ok(Self { value: s, max_length: max_len })
+    }
+}
+
+impl Type<Sqlite> for Code {
+    fn type_info() -> SqliteTypeInfo {
+        <String as Type<Sqlite>>::type_info()
+    }
+}
+
+impl Encode<'_, Sqlite> for Code {
+    fn encode_by_ref(&self, args: &mut SqliteArgumentsBuffer) -> Result<IsNull, BoxDynError> {
+        <String as Encode<Sqlite>>::encode_by_ref(&self.value.value().to_string(), args)
+    }
+}
+
+impl Decode<'_, Sqlite> for Code {
+    fn decode(value: SqliteValueRef<'_>) -> Result<Self, BoxDynError> {
+        let s = <String as Decode<Sqlite>>::decode(value)?;
+        Ok(Self {
+            value: TextValue::new(s, 50)?,
+        })
+    }
+}
+
+impl Type<Sqlite> for Name {
+    fn type_info() -> SqliteTypeInfo {
+        <String as Type<Sqlite>>::type_info()
+    }
+}
+
+impl Encode<'_, Sqlite> for Name {
+    fn encode_by_ref(&self, args: &mut SqliteArgumentsBuffer) -> Result<IsNull, BoxDynError> {
+        <String as Encode<Sqlite>>::encode_by_ref(&self.value.value().to_string(), args)
+    }
+}
+
+impl Decode<'_, Sqlite> for Name {
+    fn decode(value: SqliteValueRef<'_>) -> Result<Self, BoxDynError> {
+        let s = <String as Decode<Sqlite>>::decode(value)?;
+        Ok(Self {
+            value: TextValue::new(s, 255)?,
+        })
+    }
+}
+
+impl Type<Sqlite> for PhoneNumber {
+    fn type_info() -> SqliteTypeInfo {
+        <String as Type<Sqlite>>::type_info()
+    }
+}
+
+impl Encode<'_, Sqlite> for PhoneNumber {
+    fn encode_by_ref(&self, args: &mut SqliteArgumentsBuffer) -> Result<IsNull, BoxDynError> {
+        <String as Encode<Sqlite>>::encode_by_ref(&self.value, args)
+    }
+}
+
+impl Decode<'_, Sqlite> for PhoneNumber {
+    fn decode(value: SqliteValueRef<'_>) -> Result<Self, BoxDynError> {
+        let s = <String as Decode<Sqlite>>::decode(value)?;
+        Ok(Self::new(s)?)
+    }
+}
+
+impl Type<Sqlite> for Money {
+    fn type_info() -> SqliteTypeInfo {
+        <String as Type<Sqlite>>::type_info()
+    }
+}
+
+impl Encode<'_, Sqlite> for Money {
+    fn encode_by_ref(&self, args: &mut SqliteArgumentsBuffer) -> Result<IsNull, BoxDynError> {
+        let s = self.amount.to_string();
+        <String as Encode<Sqlite>>::encode_by_ref(&s, args)
+    }
+}
+
+impl Decode<'_, Sqlite> for Money {
+    fn decode(value: SqliteValueRef<'_>) -> Result<Self, BoxDynError> {
+        let s = <String as Decode<Sqlite>>::decode(value)?;
+        let d: Decimal = s.parse()?;
+        Ok(Self::new(d)?)
+    }
+}
+
+impl Type<Sqlite> for Quantity {
+    fn type_info() -> SqliteTypeInfo {
+        <i32 as Type<Sqlite>>::type_info()
+    }
+}
+
+impl Encode<'_, Sqlite> for Quantity {
+    fn encode_by_ref(&self, args: &mut SqliteArgumentsBuffer) -> Result<IsNull, BoxDynError> {
+        <i32 as Encode<Sqlite>>::encode_by_ref(&self.value, args)
+    }
+}
+
+impl Decode<'_, Sqlite> for Quantity {
+    fn decode(value: SqliteValueRef<'_>) -> Result<Self, BoxDynError> {
+        let i = <i32 as Decode<Sqlite>>::decode(value)?;
+        Ok(Self { value: i })
     }
 }
