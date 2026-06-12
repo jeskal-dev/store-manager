@@ -95,6 +95,17 @@ impl Inventory {
         Ok(())
     }
 
+    pub fn calculate_status(&mut self) {
+        if self.quantity.value() <= 0 {
+            self.status = InventoryStatus::OutOfStock;
+        } else if self.quantity.value() <= self.min_stock.value() {
+            self.status = InventoryStatus::LowStock;
+        } else {
+            self.status = InventoryStatus::InStock;
+        }
+        self.touch();
+    }
+
     pub fn activate(&mut self) {
         self.active = true;
         self.touch();

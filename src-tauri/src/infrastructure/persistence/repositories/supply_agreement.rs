@@ -186,4 +186,19 @@ impl SupplyAgreementRepository for SqliteSupplyAgreementRepository {
         .await
         .map_err(Into::into)
     }
+
+    async fn find_by_product_and_supplier(
+        &self,
+        product_id: Uuid,
+        supplier_id: Uuid,
+    ) -> Result<Option<SupplyAgreement>> {
+        sqlx::query_as::<_, SupplyAgreement>(
+            "SELECT * FROM supply_agreements WHERE product_id = ? AND supplier_id = ?",
+        )
+        .bind(product_id)
+        .bind(supplier_id)
+        .fetch_optional(&self.pool)
+        .await
+        .map_err(Into::into)
+    }
 }

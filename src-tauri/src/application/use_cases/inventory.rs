@@ -32,6 +32,15 @@ impl<R: InventoryRepository + Sync> ForInventoryUseCases for ForInventoryInterac
         let store_id = Uuid::parse_str(&input.store_id)?;
         let product_id = Uuid::parse_str(&input.product_id)?;
 
+        if self
+            .repo
+            .find_by_product_and_store(product_id, store_id)
+            .await?
+            .is_some()
+        {
+            anyhow::bail!("Inventory already exists for this product and store");
+        }
+
         let inventory = Inventory::new(
             input.inventory_code,
             store_id,
@@ -56,23 +65,12 @@ impl<R: InventoryRepository + Sync> ForInventoryUseCases for ForInventoryInterac
         if let Some(ref code) = input.inventory_code {
             inventory.inventory_code = Code::new(code.clone())?;
         }
-        if let Some(ref store_id) = input.store_id {
-            inventory.store_id = Uuid::parse_str(store_id)?;
-        }
-        if let Some(ref product_id) = input.product_id {
-            inventory.product_id = Uuid::parse_str(product_id)?;
-        }
-        if let Some(quantity) = input.quantity {
-            inventory.update_quantity(quantity)?;
-        }
         if let Some(price) = input.parse_price_local()? {
             inventory.update_price(price)?;
         }
         if let Some(min_stock) = input.min_stock {
             inventory.min_stock = Quantity::new(min_stock)?;
-        }
-        if let Some(ref status) = input.status {
-            inventory.update_status(status.clone())?;
+            inventory.calculate_status();
         }
         if let Some(active) = input.active {
             if active {

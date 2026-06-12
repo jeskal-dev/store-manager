@@ -9,27 +9,30 @@ use sqlx::{
 };
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct InventoryStatus {
-    value: String,
+pub enum InventoryStatus {
+    #[serde(rename = "IN_STOCK")]
+    InStock,
+    #[serde(rename = "LOW_STOCK")]
+    LowStock,
+    #[serde(rename = "OUT_OF_STOCK")]
+    OutOfStock,
 }
 
 impl InventoryStatus {
     pub fn new(value: String) -> Result<Self> {
-        let status = Self {
-            value: value.to_uppercase(),
-        };
-        status.validate()?;
-        Ok(status)
-    }
-
-    pub fn value(&self) -> &str {
-        &self.value
-    }
-
-    fn validate(&self) -> Result<()> {
-        match self.value.as_str() {
-            "ACTIVE" | "INACTIVE" | "PENDING" | "DISCONTINUED" => Ok(()),
+        match value.to_uppercase().as_str() {
+            "IN_STOCK" => Ok(Self::InStock),
+            "LOW_STOCK" => Ok(Self::LowStock),
+            "OUT_OF_STOCK" => Ok(Self::OutOfStock),
             _ => Err(anyhow::anyhow!("Invalid inventory status")),
+        }
+    }
+
+    pub fn as_str(&self) -> &'static str {
+        match self {
+            Self::InStock => "IN_STOCK",
+            Self::LowStock => "LOW_STOCK",
+            Self::OutOfStock => "OUT_OF_STOCK",
         }
     }
 }
@@ -42,7 +45,8 @@ impl Type<Sqlite> for InventoryStatus {
 
 impl Encode<'_, Sqlite> for InventoryStatus {
     fn encode_by_ref(&self, args: &mut SqliteArgumentsBuffer) -> Result<IsNull, BoxDynError> {
-        <String as Encode<Sqlite>>::encode_by_ref(&self.value, args)
+        let s = self.as_str().to_string();
+        <String as Encode<Sqlite>>::encode_by_ref(&s, args)
     }
 }
 

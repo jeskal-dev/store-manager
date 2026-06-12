@@ -198,6 +198,21 @@ impl InventoryRepository for SqliteInventoryRepository {
             .map_err(Into::into)
     }
 
+    async fn find_by_product_and_store(
+        &self,
+        product_id: Uuid,
+        store_id: Uuid,
+    ) -> Result<Option<Inventory>> {
+        sqlx::query_as::<_, Inventory>(
+            "SELECT * FROM inventory WHERE product_id = ? AND store_id = ?",
+        )
+        .bind(product_id)
+        .bind(store_id)
+        .fetch_optional(&self.pool)
+        .await
+        .map_err(Into::into)
+    }
+
     async fn find_by_status(&self, status: &str) -> Result<Vec<Inventory>> {
         sqlx::query_as::<_, Inventory>("SELECT * FROM inventory WHERE status = ?")
             .bind(status)

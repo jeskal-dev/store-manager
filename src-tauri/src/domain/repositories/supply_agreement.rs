@@ -11,4 +11,9 @@ use super::Repository;
 pub trait SupplyAgreementRepository: Repository<SupplyAgreement> {
     async fn find_by_product(&self, product_id: Uuid) -> Result<Vec<SupplyAgreement>>;
     async fn find_by_supplier(&self, supplier_id: Uuid) -> Result<Vec<SupplyAgreement>>;
+    async fn find_by_product_and_supplier(
+        &self,
+        product_id: Uuid,
+        supplier_id: Uuid,
+    ) -> Result<Option<SupplyAgreement>>;
 }

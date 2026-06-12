@@ -34,6 +34,15 @@ impl<R: SupplyAgreementRepository + Sync> ForSupplyAgreementUseCases
         let product_id = Uuid::parse_str(&input.product_id)?;
         let supplier_id = Uuid::parse_str(&input.supplier_id)?;
         let cost = input.parse_cost()?;
+        let exists_relation = self
+            .repo
+            .find_by_product_and_supplier(product_id, supplier_id)
+            .await?
+            .is_some();
+
+        if exists_relation {
+            anyhow::bail!("A supply agreement already exists for this product and supplier");
+        }
 
         let agreement = SupplyAgreement::new(product_id, supplier_id, cost, input.active)?;
 
@@ -47,12 +56,33 @@ impl<R: SupplyAgreementRepository + Sync> ForSupplyAgreementUseCases
             .await?
             .ok_or_else(|| anyhow::anyhow!("Supply agreement not found"))?;
 
-        if let Some(ref product_id) = input.product_id {
-            agreement.product_id = Uuid::parse_str(product_id)?;
+        let new_product_id = match &input.product_id {
+            Some(pid) => Uuid::parse_str(pid)?,
+            None => agreement.product_id,
+        };
+        let new_supplier_id = match &input.supplier_id {
+            Some(sid) => Uuid::parse_str(sid)?,
+            None => agreement.supplier_id,
+        };
+
+        if (input.product_id.is_some() || input.supplier_id.is_some())
+            && (new_product_id != agreement.product_id || new_supplier_id != agreement.supplier_id)
+        {
+            if let Some(existing) = self
+                .repo
+                .find_by_product_and_supplier(new_product_id, new_supplier_id)
+                .await?
+            {
+                if existing.id != id {
+                    anyhow::bail!(
+                        "A supply agreement already exists for this product and supplier"
+                    );
+                }
+            }
         }
-        if let Some(ref supplier_id) = input.supplier_id {
-            agreement.supplier_id = Uuid::parse_str(supplier_id)?;
-        }
+
+        agreement.product_id = new_product_id;
+        agreement.supplier_id = new_supplier_id;
         if let Some(cost) = input.parse_cost()? {
             agreement.update_cost(cost)?;
         }

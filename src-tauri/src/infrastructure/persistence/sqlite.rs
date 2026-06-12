@@ -5,11 +5,9 @@ use sqlx::sqlite::SqlitePoolOptions;
 use sqlx::SqlitePool;
 use tauri::Manager;
 
-use crate::application::use_cases::inventory::{ForInventoryInteractor, UpdateInventoryInteractor};
-use crate::application::use_cases::product::{ForProductInteractor, UpdateProductInteractor};
-use crate::application::use_cases::supply_agreement::{
-    ForSupplyAgreementInteractor, UpdateSupplyAgreementInteractor,
-};
+use crate::application::use_cases::inventory::ForInventoryInteractor;
+use crate::application::use_cases::product::ForProductInteractor;
+use crate::application::use_cases::supply_agreement::ForSupplyAgreementInteractor;
 use crate::infrastructure::persistence::repositories::inventory::SqliteInventoryRepository;
 use crate::infrastructure::persistence::repositories::product::SqliteProductRepository;
 use crate::infrastructure::persistence::repositories::purchase::SqlitePurchaseRepository;
