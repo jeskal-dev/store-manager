@@ -5,6 +5,9 @@ use uuid::Uuid;
 use crate::domain::entities::supply_agreement::SupplyAgreement;
 use crate::domain::repositories::supply_agreement::SupplyAgreementRepository;
 
+use crate::shared::criteria::{Criteria, PaginatedResult};
+
+use super::super::dtos::shared::CriteriaInput;
 use super::super::dtos::supply_agreement::{
     CreateSupplyAgreementInput, UpdateSupplyAgreementInput,
 };
@@ -14,6 +17,7 @@ pub trait ForSupplyAgreementUseCases {
     async fn create(&self, input: CreateSupplyAgreementInput) -> Result<SupplyAgreement>;
     async fn update(&self, id: Uuid, input: UpdateSupplyAgreementInput) -> Result<SupplyAgreement>;
     async fn delete(&self, id: Uuid) -> Result<()>;
+    async fn search(&self, input: CriteriaInput) -> Result<PaginatedResult<SupplyAgreement>>;
 }
 
 pub struct ForSupplyAgreementInteractor<R: SupplyAgreementRepository> {
@@ -100,5 +104,10 @@ impl<R: SupplyAgreementRepository + Sync> ForSupplyAgreementUseCases
     async fn delete(&self, id: Uuid) -> Result<()> {
         self.repo.delete(id).await?;
         Ok(())
+    }
+
+    async fn search(&self, input: CriteriaInput) -> Result<PaginatedResult<SupplyAgreement>> {
+        let criteria: Criteria<()> = input.try_into()?;
+        self.repo.search(criteria.into()).await
     }
 }

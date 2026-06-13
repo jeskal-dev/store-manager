@@ -6,6 +6,9 @@ use crate::domain::entities::store::Store;
 use crate::domain::repositories::store::StoreRepository;
 use crate::domain::value_objects::common::{Code, Name, PhoneNumber, TextValue};
 
+use crate::shared::criteria::{Criteria, PaginatedResult};
+
+use super::super::dtos::shared::CriteriaInput;
 use super::super::dtos::store::{CreateStoreInput, UpdateStoreInput};
 
 #[async_trait]
@@ -13,6 +16,7 @@ pub trait ForStoreUseCases {
     async fn create(&self, input: CreateStoreInput) -> Result<Store>;
     async fn update(&self, id: Uuid, input: UpdateStoreInput) -> Result<Store>;
     async fn delete(&self, id: Uuid) -> Result<()>;
+    async fn search(&self, input: CriteriaInput) -> Result<PaginatedResult<Store>>;
 }
 
 pub struct ForStoreInteractor<R: StoreRepository> {
@@ -85,5 +89,10 @@ impl<R: StoreRepository + Sync> ForStoreUseCases for ForStoreInteractor<R> {
     async fn delete(&self, id: Uuid) -> Result<()> {
         self.repo.delete(id).await?;
         Ok(())
+    }
+
+    async fn search(&self, input: CriteriaInput) -> Result<PaginatedResult<Store>> {
+        let criteria: Criteria<()> = input.try_into()?;
+        self.repo.search(criteria.into()).await
     }
 }

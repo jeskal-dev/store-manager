@@ -6,13 +6,17 @@ use crate::domain::repositories::inventory::InventoryRepository;
 use crate::domain::value_objects::common::Quantity;
 use crate::domain::{entities::inventory::Inventory, value_objects::common::Code};
 
+use crate::shared::criteria::{Criteria, PaginatedResult};
+
 use super::super::dtos::inventory::{CreateInventoryInput, UpdateInventoryInput};
+use super::super::dtos::shared::CriteriaInput;
 
 #[async_trait]
 pub trait ForInventoryUseCases {
     async fn create(&self, input: CreateInventoryInput) -> Result<Inventory>;
     async fn update(&self, id: Uuid, input: UpdateInventoryInput) -> Result<Inventory>;
     async fn delete(&self, id: Uuid) -> Result<()>;
+    async fn search(&self, input: CriteriaInput) -> Result<PaginatedResult<Inventory>>;
 }
 
 pub struct ForInventoryInteractor<R: InventoryRepository> {
@@ -86,5 +90,10 @@ impl<R: InventoryRepository + Sync> ForInventoryUseCases for ForInventoryInterac
     async fn delete(&self, id: Uuid) -> Result<()> {
         self.repo.delete(id).await?;
         Ok(())
+    }
+
+    async fn search(&self, input: CriteriaInput) -> Result<PaginatedResult<Inventory>> {
+        let criteria: Criteria<()> = input.try_into()?;
+        self.repo.search(criteria.into()).await
     }
 }

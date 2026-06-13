@@ -1,4 +1,5 @@
 pub mod inventory;
+pub mod inventory_movement;
 pub mod product;
 pub mod purchase;
 pub mod sale;

@@ -1,72 +1,16 @@
 use std::fs;
+use std::path::Path;
 
 use anyhow::Result;
 use sqlx::sqlite::SqlitePoolOptions;
 use sqlx::SqlitePool;
-use tauri::Manager;
 
-use crate::application::use_cases::inventory::ForInventoryInteractor;
-use crate::application::use_cases::product::ForProductInteractor;
-use crate::application::use_cases::supply_agreement::ForSupplyAgreementInteractor;
-use crate::infrastructure::persistence::repositories::inventory::SqliteInventoryRepository;
-use crate::infrastructure::persistence::repositories::product::SqliteProductRepository;
-use crate::infrastructure::persistence::repositories::purchase::SqlitePurchaseRepository;
-use crate::infrastructure::persistence::repositories::sale::SqliteSalesRepository;
-use crate::infrastructure::persistence::repositories::store::SqliteStoreRepository;
-use crate::infrastructure::persistence::repositories::supplier::SqliteSupplierRepository;
-use crate::infrastructure::persistence::repositories::supply_agreement::SqliteSupplyAgreementRepository;
+static MIGRATOR: sqlx::migrate::Migrator = sqlx::migrate!("./migrations");
 
-pub struct Repositories {
-    pub store: SqliteStoreRepository,
-    pub product: SqliteProductRepository,
-    pub supplier: SqliteSupplierRepository,
-    pub inventory: SqliteInventoryRepository,
-    pub supply_agreement: SqliteSupplyAgreementRepository,
-    pub purchase: SqlitePurchaseRepository,
-    pub sales: SqliteSalesRepository,
-}
+pub async fn create_pool(app_data_dir: &Path) -> Result<SqlitePool> {
+    fs::create_dir_all(app_data_dir)?;
+    let db_path = app_data_dir.join("store_manager.db");
 
-pub struct UseCases {
-    pub product: ForProductInteractor<SqliteProductRepository>,
-    pub inventory: ForInventoryInteractor<SqliteInventoryRepository>,
-    pub supply_agreement: ForSupplyAgreementInteractor<SqliteSupplyAgreementRepository>,
-}
-
-pub struct AppState {
-    pub repos: Repositories,
-    pub use_cases: UseCases,
-}
-
-pub fn setup_app(app: &mut tauri::App) -> Result<()> {
-    let rt = tokio::runtime::Runtime::new()?;
-    let pool = rt.block_on(create_pool(app))?;
-    rt.block_on(run_migrations(&pool))?;
-
-    let repos = Repositories {
-        store: SqliteStoreRepository::new(pool.clone()),
-        product: SqliteProductRepository::new(pool.clone()),
-        supplier: SqliteSupplierRepository::new(pool.clone()),
-        inventory: SqliteInventoryRepository::new(pool.clone()),
-        supply_agreement: SqliteSupplyAgreementRepository::new(pool.clone()),
-        purchase: SqlitePurchaseRepository::new(pool.clone()),
-        sales: SqliteSalesRepository::new(pool),
-    };
-
-    let use_cases = UseCases {
-        product: ForProductInteractor::new(repos.product.clone()),
-        inventory: ForInventoryInteractor::new(repos.inventory.clone()),
-        supply_agreement: ForSupplyAgreementInteractor::new(repos.supply_agreement.clone()),
-    };
-
-    app.manage(AppState { repos, use_cases });
-
-    Ok(())
-}
-
-async fn create_pool(app: &tauri::App) -> Result<SqlitePool> {
-    let app_dir = app.path().app_data_dir()?;
-    fs::create_dir_all(&app_dir)?;
-    let db_path = app_dir.join("store_manager.db");
     let pool = SqlitePoolOptions::new()
         .max_connections(5)
         .connect(db_path.to_str().unwrap())
@@ -82,9 +26,7 @@ async fn create_pool(app: &tauri::App) -> Result<SqlitePool> {
     Ok(pool)
 }
 
-static MIGRATOR: sqlx::migrate::Migrator = sqlx::migrate!("./migrations");
-
-async fn run_migrations(pool: &SqlitePool) -> Result<()> {
+pub async fn run_migrations(pool: &SqlitePool) -> Result<()> {
     MIGRATOR.run(pool).await?;
     Ok(())
 }

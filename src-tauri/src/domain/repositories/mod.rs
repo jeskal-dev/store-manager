@@ -1,4 +1,5 @@
 pub mod inventory;
+pub mod inventory_movement;
 pub mod product;
 pub mod purchase;
 pub mod sale;
@@ -7,6 +8,7 @@ pub mod supplier;
 pub mod supply_agreement;
 
 pub use inventory::InventoryRepository;
+pub use inventory_movement::InventoryMovementRepository;
 pub use product::ProductRepository;
 pub use purchase::PurchaseRepository;
 pub use sale::SalesRepository;

@@ -3,14 +3,14 @@ pub mod domain;
 pub mod infrastructure;
 pub mod shared;
 
-use infrastructure::persistence::sqlite;
+use infrastructure::di;
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
     tauri::Builder::default()
         .plugin(tauri_plugin_opener::init())
         .setup(|app| {
-            sqlite::setup_app(app).expect("failed to initialize database");
+            di::setup_app(app).expect("failed to initialize application");
             Ok(())
         })
         .invoke_handler(tauri::generate_handler![])

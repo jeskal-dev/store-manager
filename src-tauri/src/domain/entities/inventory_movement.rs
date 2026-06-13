@@ -23,7 +23,7 @@ pub struct InventoryMovement {
 impl InventoryMovement {
     pub fn new(
         inventory_id: Uuid,
-        movement_type: String,
+        movement_type: MovementType,
         old_quantity: i32,
         new_quantity: i32,
         description: Option<String>,
@@ -33,7 +33,7 @@ impl InventoryMovement {
         let movement = Self {
             id: Uuid::new_v4(),
             inventory_id,
-            movement_type: MovementType::new(movement_type)?,
+            movement_type,
             old_quantity: Quantity::new(old_quantity)?,
             new_quantity: Quantity::new(new_quantity)?,
             date: Utc::now(),
@@ -49,7 +49,7 @@ impl InventoryMovement {
     pub fn restore(
         id: Uuid,
         inventory_id: Uuid,
-        movement_type: String,
+        movement_type: MovementType,
         old_quantity: i32,
         new_quantity: i32,
         date: DateTime<Utc>,
@@ -60,7 +60,7 @@ impl InventoryMovement {
         let movement = Self {
             id,
             inventory_id,
-            movement_type: MovementType::new(movement_type)?,
+            movement_type,
             old_quantity: Quantity::new(old_quantity)?,
             new_quantity: Quantity::new(new_quantity)?,
             date,

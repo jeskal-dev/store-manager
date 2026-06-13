@@ -5,13 +5,17 @@ use uuid::Uuid;
 use crate::domain::entities::product::Product;
 use crate::domain::repositories::product::ProductRepository;
 
+use crate::shared::criteria::{Criteria, PaginatedResult};
+
 use super::super::dtos::product::{CreateProductInput, UpdateProductInput};
+use super::super::dtos::shared::CriteriaInput;
 
 #[async_trait]
 pub trait ForProductUseCases {
     async fn create(&self, input: CreateProductInput) -> Result<Product>;
     async fn update(&self, id: Uuid, input: UpdateProductInput) -> Result<Product>;
     async fn delete(&self, id: Uuid) -> Result<()>;
+    async fn search(&self, input: CriteriaInput) -> Result<PaginatedResult<Product>>;
 }
 
 pub struct ForProductInteractor<R: ProductRepository> {
@@ -60,5 +64,10 @@ impl<R: ProductRepository + Sync> ForProductUseCases for ForProductInteractor<R>
     async fn delete(&self, id: Uuid) -> Result<()> {
         self.repo.delete(id).await?;
         Ok(())
+    }
+
+    async fn search(&self, input: CriteriaInput) -> Result<PaginatedResult<Product>> {
+        let criteria: Criteria<()> = input.try_into()?;
+        self.repo.search(criteria.into()).await
     }
 }

@@ -6,6 +6,9 @@ use crate::domain::entities::supplier::Supplier;
 use crate::domain::repositories::supplier::SupplierRepository;
 use crate::domain::value_objects::common::{Code, Name, PhoneNumber, TextValue};
 
+use crate::shared::criteria::{Criteria, PaginatedResult};
+
+use super::super::dtos::shared::CriteriaInput;
 use super::super::dtos::supplier::{CreateSupplierInput, UpdateSupplierInput};
 
 #[async_trait]
@@ -13,6 +16,7 @@ pub trait ForSupplierUseCases {
     async fn create(&self, input: CreateSupplierInput) -> Result<Supplier>;
     async fn update(&self, id: Uuid, input: UpdateSupplierInput) -> Result<Supplier>;
     async fn delete(&self, id: Uuid) -> Result<()>;
+    async fn search(&self, input: CriteriaInput) -> Result<PaginatedResult<Supplier>>;
 }
 
 pub struct ForSupplierInteractor<R: SupplierRepository> {
@@ -95,5 +99,10 @@ impl<R: SupplierRepository + Sync> ForSupplierUseCases for ForSupplierInteractor
     async fn delete(&self, id: Uuid) -> Result<()> {
         self.repo.delete(id).await?;
         Ok(())
+    }
+
+    async fn search(&self, input: CriteriaInput) -> Result<PaginatedResult<Supplier>> {
+        let criteria: Criteria<()> = input.try_into()?;
+        self.repo.search(criteria.into()).await
     }
 }

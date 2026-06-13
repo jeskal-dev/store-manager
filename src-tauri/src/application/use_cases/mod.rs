@@ -1,5 +1,9 @@
 pub mod inventory;
+pub mod inventory_movement;
+pub mod operations;
 pub mod product;
+pub mod purchase;
+pub mod sale;
 pub mod store;
 pub mod supplier;
 pub mod supply_agreement;

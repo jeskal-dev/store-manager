@@ -145,3 +145,22 @@ impl<T> Clone for Criteria<T> {
         }
     }
 }
+
+impl<T> Criteria<T> {
+    pub fn into<U>(self) -> Criteria<U> {
+        let mut criteria = Criteria::new();
+        criteria.pagination = self.pagination;
+        criteria.filters = self.filters.map(|f| {
+            f.into_iter()
+                .map(|fi| FilterItem::new(fi.field, fi.operator, fi.value))
+                .collect()
+        });
+        criteria.global_filters = self.global_filters.map(|f| {
+            f.into_iter()
+                .map(|fi| FilterItem::new(fi.field, fi.operator, fi.value))
+                .collect()
+        });
+        criteria.sort = self.sort;
+        criteria
+    }
+}

@@ -58,27 +58,34 @@ impl Decode<'_, Sqlite> for InventoryStatus {
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct MovementType {
-    value: String,
+pub enum MovementType {
+    #[serde(rename = "restock")]
+    Restock,
+    #[serde(rename = "shrinkage")]
+    Shrinkage,
+    #[serde(rename = "sale")]
+    Sale,
+    #[serde(rename = "purchase")]
+    Purchase,
 }
 
 impl MovementType {
     pub fn new(value: String) -> Result<Self> {
-        let mt = Self {
-            value: value.to_lowercase(),
-        };
-        mt.validate()?;
-        Ok(mt)
-    }
-
-    pub fn value(&self) -> &str {
-        &self.value
-    }
-
-    fn validate(&self) -> Result<()> {
-        match self.value.as_str() {
-            "restock" | "shrinkage" | "sale" | "purchase" => Ok(()),
+        match value.to_lowercase().as_str() {
+            "restock" => Ok(Self::Restock),
+            "shrinkage" => Ok(Self::Shrinkage),
+            "sale" => Ok(Self::Sale),
+            "purchase" => Ok(Self::Purchase),
             _ => Err(anyhow::anyhow!("Invalid movement type")),
+        }
+    }
+
+    pub fn as_str(&self) -> &'static str {
+        match self {
+            Self::Restock => "restock",
+            Self::Shrinkage => "shrinkage",
+            Self::Sale => "sale",
+            Self::Purchase => "purchase",
         }
     }
 }
@@ -91,7 +98,7 @@ impl Type<Sqlite> for MovementType {
 
 impl Encode<'_, Sqlite> for MovementType {
     fn encode_by_ref(&self, args: &mut SqliteArgumentsBuffer) -> Result<IsNull, BoxDynError> {
-        <String as Encode<Sqlite>>::encode_by_ref(&self.value, args)
+        <String as Encode<Sqlite>>::encode_by_ref(&self.as_str().to_string(), args)
     }
 }
 
