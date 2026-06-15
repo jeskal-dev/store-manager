@@ -9,9 +9,9 @@ use anyhow::Result;
 use sqlx::SqlitePool;
 use tauri::Manager;
 
+use crate::application::use_cases::analytics::ForAnalyticsInteractor;
 use crate::application::use_cases::inventory::ForInventoryInteractor;
 use crate::application::use_cases::inventory_movement::ForInventoryMovementInteractor;
-use crate::application::use_cases::operations::ForOperationsInteractor;
 use crate::application::use_cases::product::ForProductInteractor;
 use crate::application::use_cases::purchase::ForPurchaseInteractor;
 use crate::application::use_cases::sale::ForSaleInteractor;
@@ -21,6 +21,7 @@ use crate::application::use_cases::supply_agreement::ForSupplyAgreementInteracto
 use crate::infrastructure::events::event_bus::EventBus;
 use crate::infrastructure::events::event_dispatcher::EventDispatcher;
 use crate::infrastructure::logging::console_logger::ConsoleLogger;
+use crate::infrastructure::persistence::repositories::analytics::SqliteAnalyticsRepository;
 use crate::infrastructure::persistence::repositories::inventory::SqliteInventoryRepository;
 use crate::infrastructure::persistence::repositories::inventory_movement::SqliteInventoryMovementRepository;
 use crate::infrastructure::persistence::repositories::product::SqliteProductRepository;
@@ -36,20 +37,23 @@ use crate::infrastructure::persistence::sqlite;
 // ---------------------------------------------------------------------------
 
 pub struct UseCases {
+    pub analytics: ForAnalyticsInteractor<SqliteAnalyticsRepository>,
     pub product: ForProductInteractor<SqliteProductRepository>,
     pub inventory: ForInventoryInteractor<SqliteInventoryRepository>,
     pub inventory_movement: ForInventoryMovementInteractor<
         SqliteInventoryRepository,
         SqliteInventoryMovementRepository,
     >,
-    pub operations: ForOperationsInteractor<
+    pub sale: ForSaleInteractor<
+        SqliteSalesRepository,
         SqliteInventoryRepository,
         SqliteInventoryMovementRepository,
-        SqlitePurchaseRepository,
-        SqliteSalesRepository,
     >,
-    pub sale: ForSaleInteractor<SqliteSalesRepository>,
-    pub purchase: ForPurchaseInteractor<SqlitePurchaseRepository>,
+    pub purchase: ForPurchaseInteractor<
+        SqlitePurchaseRepository,
+        SqliteInventoryRepository,
+        SqliteInventoryMovementRepository,
+    >,
     pub store: ForStoreInteractor<SqliteStoreRepository>,
     pub supplier: ForSupplierInteractor<SqliteSupplierRepository>,
     pub supply_agreement: ForSupplyAgreementInteractor<SqliteSupplyAgreementRepository>,
@@ -114,10 +118,12 @@ pub fn setup_app(app: &mut tauri::App) -> Result<()> {
     let event_bus = EventBus::new(256);
 
     // 5. Repositories (internal — not stored in AppState)
+    let analytics_repo = SqliteAnalyticsRepository::new(pool.clone());
     let repos = Repositories::new(pool);
 
     // 6. Use cases
     let use_cases = UseCases {
+        analytics: ForAnalyticsInteractor::new(analytics_repo),
         product: ForProductInteractor::new(repos.product),
         inventory: ForInventoryInteractor::new(repos.inventory.clone()),
         inventory_movement: ForInventoryMovementInteractor::new(
@@ -126,16 +132,20 @@ pub fn setup_app(app: &mut tauri::App) -> Result<()> {
             event_bus.clone(),
             Box::new(ConsoleLogger),
         ),
-        operations: ForOperationsInteractor::new(
-            repos.inventory,
-            repos.inventory_movement,
-            repos.purchase.clone(),
+        sale: ForSaleInteractor::new(
             repos.sales.clone(),
+            repos.inventory.clone(),
+            repos.inventory_movement.clone(),
             event_bus.clone(),
             Box::new(ConsoleLogger),
         ),
-        sale: ForSaleInteractor::new(repos.sales),
-        purchase: ForPurchaseInteractor::new(repos.purchase),
+        purchase: ForPurchaseInteractor::new(
+            repos.purchase.clone(),
+            repos.inventory.clone(),
+            repos.inventory_movement.clone(),
+            event_bus.clone(),
+            Box::new(ConsoleLogger),
+        ),
         store: ForStoreInteractor::new(repos.store),
         supplier: ForSupplierInteractor::new(repos.supplier),
         supply_agreement: ForSupplyAgreementInteractor::new(repos.supply_agreement),

@@ -1,3 +1,4 @@
+pub mod analytics;
 pub mod shared;
 pub mod store;
 pub mod supplier;

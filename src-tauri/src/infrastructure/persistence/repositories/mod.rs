@@ -1,3 +1,4 @@
+pub mod analytics;
 pub mod inventory;
 pub mod inventory_movement;
 pub mod product;
