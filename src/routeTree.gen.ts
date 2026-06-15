@@ -9,50 +9,417 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
-import { Route as IndexRouteImport } from './routes/index'
+import { Route as MainRouteImport } from './routes/_main'
+import { Route as MainIndexRouteImport } from './routes/_main/index'
+import { Route as MainSupplyAgreementsRouteImport } from './routes/_main/supply-agreements'
+import { Route as MainSuppliersRouteImport } from './routes/_main/suppliers'
+import { Route as MainStoresRouteImport } from './routes/_main/stores'
+import { Route as MainSalesRouteImport } from './routes/_main/sales'
+import { Route as MainPurchasesRouteImport } from './routes/_main/purchases'
+import { Route as MainProductsRouteImport } from './routes/_main/products'
+import { Route as MainInventoryRouteImport } from './routes/_main/inventory'
+import { Route as MainSalesIndexRouteImport } from './routes/_main/sales/index'
+import { Route as MainPurchasesIndexRouteImport } from './routes/_main/purchases/index'
+import { Route as MainInventoryIndexRouteImport } from './routes/_main/inventory/index'
+import { Route as MainSalesRegisterRouteImport } from './routes/_main/sales/register'
+import { Route as MainPurchasesRegisterRouteImport } from './routes/_main/purchases/register'
+import { Route as MainInventoryShrinkageRouteImport } from './routes/_main/inventory/shrinkage'
+import { Route as MainInventoryRestockRouteImport } from './routes/_main/inventory/restock'
+import { Route as MainInventoryMovementsRouteImport } from './routes/_main/inventory/movements'
 
-const IndexRoute = IndexRouteImport.update({
+const MainRoute = MainRouteImport.update({
+  id: '/_main',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const MainIndexRoute = MainIndexRouteImport.update({
   id: '/',
   path: '/',
-  getParentRoute: () => rootRouteImport,
+  getParentRoute: () => MainRoute,
+} as any)
+const MainSupplyAgreementsRoute = MainSupplyAgreementsRouteImport.update({
+  id: '/supply-agreements',
+  path: '/supply-agreements',
+  getParentRoute: () => MainRoute,
+} as any)
+const MainSuppliersRoute = MainSuppliersRouteImport.update({
+  id: '/suppliers',
+  path: '/suppliers',
+  getParentRoute: () => MainRoute,
+} as any)
+const MainStoresRoute = MainStoresRouteImport.update({
+  id: '/stores',
+  path: '/stores',
+  getParentRoute: () => MainRoute,
+} as any)
+const MainSalesRoute = MainSalesRouteImport.update({
+  id: '/sales',
+  path: '/sales',
+  getParentRoute: () => MainRoute,
+} as any)
+const MainPurchasesRoute = MainPurchasesRouteImport.update({
+  id: '/purchases',
+  path: '/purchases',
+  getParentRoute: () => MainRoute,
+} as any)
+const MainProductsRoute = MainProductsRouteImport.update({
+  id: '/products',
+  path: '/products',
+  getParentRoute: () => MainRoute,
+} as any)
+const MainInventoryRoute = MainInventoryRouteImport.update({
+  id: '/inventory',
+  path: '/inventory',
+  getParentRoute: () => MainRoute,
+} as any)
+const MainSalesIndexRoute = MainSalesIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => MainSalesRoute,
+} as any)
+const MainPurchasesIndexRoute = MainPurchasesIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => MainPurchasesRoute,
+} as any)
+const MainInventoryIndexRoute = MainInventoryIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => MainInventoryRoute,
+} as any)
+const MainSalesRegisterRoute = MainSalesRegisterRouteImport.update({
+  id: '/register',
+  path: '/register',
+  getParentRoute: () => MainSalesRoute,
+} as any)
+const MainPurchasesRegisterRoute = MainPurchasesRegisterRouteImport.update({
+  id: '/register',
+  path: '/register',
+  getParentRoute: () => MainPurchasesRoute,
+} as any)
+const MainInventoryShrinkageRoute = MainInventoryShrinkageRouteImport.update({
+  id: '/shrinkage',
+  path: '/shrinkage',
+  getParentRoute: () => MainInventoryRoute,
+} as any)
+const MainInventoryRestockRoute = MainInventoryRestockRouteImport.update({
+  id: '/restock',
+  path: '/restock',
+  getParentRoute: () => MainInventoryRoute,
+} as any)
+const MainInventoryMovementsRoute = MainInventoryMovementsRouteImport.update({
+  id: '/movements',
+  path: '/movements',
+  getParentRoute: () => MainInventoryRoute,
 } as any)
 
 export interface FileRoutesByFullPath {
-  '/': typeof IndexRoute
+  '/': typeof MainIndexRoute
+  '/inventory': typeof MainInventoryRouteWithChildren
+  '/products': typeof MainProductsRoute
+  '/purchases': typeof MainPurchasesRouteWithChildren
+  '/sales': typeof MainSalesRouteWithChildren
+  '/stores': typeof MainStoresRoute
+  '/suppliers': typeof MainSuppliersRoute
+  '/supply-agreements': typeof MainSupplyAgreementsRoute
+  '/inventory/movements': typeof MainInventoryMovementsRoute
+  '/inventory/restock': typeof MainInventoryRestockRoute
+  '/inventory/shrinkage': typeof MainInventoryShrinkageRoute
+  '/purchases/register': typeof MainPurchasesRegisterRoute
+  '/sales/register': typeof MainSalesRegisterRoute
+  '/inventory/': typeof MainInventoryIndexRoute
+  '/purchases/': typeof MainPurchasesIndexRoute
+  '/sales/': typeof MainSalesIndexRoute
 }
 export interface FileRoutesByTo {
-  '/': typeof IndexRoute
+  '/products': typeof MainProductsRoute
+  '/stores': typeof MainStoresRoute
+  '/suppliers': typeof MainSuppliersRoute
+  '/supply-agreements': typeof MainSupplyAgreementsRoute
+  '/': typeof MainIndexRoute
+  '/inventory/movements': typeof MainInventoryMovementsRoute
+  '/inventory/restock': typeof MainInventoryRestockRoute
+  '/inventory/shrinkage': typeof MainInventoryShrinkageRoute
+  '/purchases/register': typeof MainPurchasesRegisterRoute
+  '/sales/register': typeof MainSalesRegisterRoute
+  '/inventory': typeof MainInventoryIndexRoute
+  '/purchases': typeof MainPurchasesIndexRoute
+  '/sales': typeof MainSalesIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
-  '/': typeof IndexRoute
+  '/_main': typeof MainRouteWithChildren
+  '/_main/inventory': typeof MainInventoryRouteWithChildren
+  '/_main/products': typeof MainProductsRoute
+  '/_main/purchases': typeof MainPurchasesRouteWithChildren
+  '/_main/sales': typeof MainSalesRouteWithChildren
+  '/_main/stores': typeof MainStoresRoute
+  '/_main/suppliers': typeof MainSuppliersRoute
+  '/_main/supply-agreements': typeof MainSupplyAgreementsRoute
+  '/_main/': typeof MainIndexRoute
+  '/_main/inventory/movements': typeof MainInventoryMovementsRoute
+  '/_main/inventory/restock': typeof MainInventoryRestockRoute
+  '/_main/inventory/shrinkage': typeof MainInventoryShrinkageRoute
+  '/_main/purchases/register': typeof MainPurchasesRegisterRoute
+  '/_main/sales/register': typeof MainSalesRegisterRoute
+  '/_main/inventory/': typeof MainInventoryIndexRoute
+  '/_main/purchases/': typeof MainPurchasesIndexRoute
+  '/_main/sales/': typeof MainSalesIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/'
+  fullPaths:
+    | '/'
+    | '/inventory'
+    | '/products'
+    | '/purchases'
+    | '/sales'
+    | '/stores'
+    | '/suppliers'
+    | '/supply-agreements'
+    | '/inventory/movements'
+    | '/inventory/restock'
+    | '/inventory/shrinkage'
+    | '/purchases/register'
+    | '/sales/register'
+    | '/inventory/'
+    | '/purchases/'
+    | '/sales/'
   fileRoutesByTo: FileRoutesByTo
-  to: '/'
-  id: '__root__' | '/'
+  to:
+    | '/products'
+    | '/stores'
+    | '/suppliers'
+    | '/supply-agreements'
+    | '/'
+    | '/inventory/movements'
+    | '/inventory/restock'
+    | '/inventory/shrinkage'
+    | '/purchases/register'
+    | '/sales/register'
+    | '/inventory'
+    | '/purchases'
+    | '/sales'
+  id:
+    | '__root__'
+    | '/_main'
+    | '/_main/inventory'
+    | '/_main/products'
+    | '/_main/purchases'
+    | '/_main/sales'
+    | '/_main/stores'
+    | '/_main/suppliers'
+    | '/_main/supply-agreements'
+    | '/_main/'
+    | '/_main/inventory/movements'
+    | '/_main/inventory/restock'
+    | '/_main/inventory/shrinkage'
+    | '/_main/purchases/register'
+    | '/_main/sales/register'
+    | '/_main/inventory/'
+    | '/_main/purchases/'
+    | '/_main/sales/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
-  IndexRoute: typeof IndexRoute
+  MainRoute: typeof MainRouteWithChildren
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
-    '/': {
-      id: '/'
+    '/_main': {
+      id: '/_main'
+      path: ''
+      fullPath: '/'
+      preLoaderRoute: typeof MainRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/_main/': {
+      id: '/_main/'
       path: '/'
       fullPath: '/'
-      preLoaderRoute: typeof IndexRouteImport
-      parentRoute: typeof rootRouteImport
+      preLoaderRoute: typeof MainIndexRouteImport
+      parentRoute: typeof MainRoute
+    }
+    '/_main/supply-agreements': {
+      id: '/_main/supply-agreements'
+      path: '/supply-agreements'
+      fullPath: '/supply-agreements'
+      preLoaderRoute: typeof MainSupplyAgreementsRouteImport
+      parentRoute: typeof MainRoute
+    }
+    '/_main/suppliers': {
+      id: '/_main/suppliers'
+      path: '/suppliers'
+      fullPath: '/suppliers'
+      preLoaderRoute: typeof MainSuppliersRouteImport
+      parentRoute: typeof MainRoute
+    }
+    '/_main/stores': {
+      id: '/_main/stores'
+      path: '/stores'
+      fullPath: '/stores'
+      preLoaderRoute: typeof MainStoresRouteImport
+      parentRoute: typeof MainRoute
+    }
+    '/_main/sales': {
+      id: '/_main/sales'
+      path: '/sales'
+      fullPath: '/sales'
+      preLoaderRoute: typeof MainSalesRouteImport
+      parentRoute: typeof MainRoute
+    }
+    '/_main/purchases': {
+      id: '/_main/purchases'
+      path: '/purchases'
+      fullPath: '/purchases'
+      preLoaderRoute: typeof MainPurchasesRouteImport
+      parentRoute: typeof MainRoute
+    }
+    '/_main/products': {
+      id: '/_main/products'
+      path: '/products'
+      fullPath: '/products'
+      preLoaderRoute: typeof MainProductsRouteImport
+      parentRoute: typeof MainRoute
+    }
+    '/_main/inventory': {
+      id: '/_main/inventory'
+      path: '/inventory'
+      fullPath: '/inventory'
+      preLoaderRoute: typeof MainInventoryRouteImport
+      parentRoute: typeof MainRoute
+    }
+    '/_main/sales/': {
+      id: '/_main/sales/'
+      path: '/'
+      fullPath: '/sales/'
+      preLoaderRoute: typeof MainSalesIndexRouteImport
+      parentRoute: typeof MainSalesRoute
+    }
+    '/_main/purchases/': {
+      id: '/_main/purchases/'
+      path: '/'
+      fullPath: '/purchases/'
+      preLoaderRoute: typeof MainPurchasesIndexRouteImport
+      parentRoute: typeof MainPurchasesRoute
+    }
+    '/_main/inventory/': {
+      id: '/_main/inventory/'
+      path: '/'
+      fullPath: '/inventory/'
+      preLoaderRoute: typeof MainInventoryIndexRouteImport
+      parentRoute: typeof MainInventoryRoute
+    }
+    '/_main/sales/register': {
+      id: '/_main/sales/register'
+      path: '/register'
+      fullPath: '/sales/register'
+      preLoaderRoute: typeof MainSalesRegisterRouteImport
+      parentRoute: typeof MainSalesRoute
+    }
+    '/_main/purchases/register': {
+      id: '/_main/purchases/register'
+      path: '/register'
+      fullPath: '/purchases/register'
+      preLoaderRoute: typeof MainPurchasesRegisterRouteImport
+      parentRoute: typeof MainPurchasesRoute
+    }
+    '/_main/inventory/shrinkage': {
+      id: '/_main/inventory/shrinkage'
+      path: '/shrinkage'
+      fullPath: '/inventory/shrinkage'
+      preLoaderRoute: typeof MainInventoryShrinkageRouteImport
+      parentRoute: typeof MainInventoryRoute
+    }
+    '/_main/inventory/restock': {
+      id: '/_main/inventory/restock'
+      path: '/restock'
+      fullPath: '/inventory/restock'
+      preLoaderRoute: typeof MainInventoryRestockRouteImport
+      parentRoute: typeof MainInventoryRoute
+    }
+    '/_main/inventory/movements': {
+      id: '/_main/inventory/movements'
+      path: '/movements'
+      fullPath: '/inventory/movements'
+      preLoaderRoute: typeof MainInventoryMovementsRouteImport
+      parentRoute: typeof MainInventoryRoute
     }
   }
 }
 
+interface MainInventoryRouteChildren {
+  MainInventoryMovementsRoute: typeof MainInventoryMovementsRoute
+  MainInventoryRestockRoute: typeof MainInventoryRestockRoute
+  MainInventoryShrinkageRoute: typeof MainInventoryShrinkageRoute
+  MainInventoryIndexRoute: typeof MainInventoryIndexRoute
+}
+
+const MainInventoryRouteChildren: MainInventoryRouteChildren = {
+  MainInventoryMovementsRoute: MainInventoryMovementsRoute,
+  MainInventoryRestockRoute: MainInventoryRestockRoute,
+  MainInventoryShrinkageRoute: MainInventoryShrinkageRoute,
+  MainInventoryIndexRoute: MainInventoryIndexRoute,
+}
+
+const MainInventoryRouteWithChildren = MainInventoryRoute._addFileChildren(
+  MainInventoryRouteChildren,
+)
+
+interface MainPurchasesRouteChildren {
+  MainPurchasesRegisterRoute: typeof MainPurchasesRegisterRoute
+  MainPurchasesIndexRoute: typeof MainPurchasesIndexRoute
+}
+
+const MainPurchasesRouteChildren: MainPurchasesRouteChildren = {
+  MainPurchasesRegisterRoute: MainPurchasesRegisterRoute,
+  MainPurchasesIndexRoute: MainPurchasesIndexRoute,
+}
+
+const MainPurchasesRouteWithChildren = MainPurchasesRoute._addFileChildren(
+  MainPurchasesRouteChildren,
+)
+
+interface MainSalesRouteChildren {
+  MainSalesRegisterRoute: typeof MainSalesRegisterRoute
+  MainSalesIndexRoute: typeof MainSalesIndexRoute
+}
+
+const MainSalesRouteChildren: MainSalesRouteChildren = {
+  MainSalesRegisterRoute: MainSalesRegisterRoute,
+  MainSalesIndexRoute: MainSalesIndexRoute,
+}
+
+const MainSalesRouteWithChildren = MainSalesRoute._addFileChildren(
+  MainSalesRouteChildren,
+)
+
+interface MainRouteChildren {
+  MainInventoryRoute: typeof MainInventoryRouteWithChildren
+  MainProductsRoute: typeof MainProductsRoute
+  MainPurchasesRoute: typeof MainPurchasesRouteWithChildren
+  MainSalesRoute: typeof MainSalesRouteWithChildren
+  MainStoresRoute: typeof MainStoresRoute
+  MainSuppliersRoute: typeof MainSuppliersRoute
+  MainSupplyAgreementsRoute: typeof MainSupplyAgreementsRoute
+  MainIndexRoute: typeof MainIndexRoute
+}
+
+const MainRouteChildren: MainRouteChildren = {
+  MainInventoryRoute: MainInventoryRouteWithChildren,
+  MainProductsRoute: MainProductsRoute,
+  MainPurchasesRoute: MainPurchasesRouteWithChildren,
+  MainSalesRoute: MainSalesRouteWithChildren,
+  MainStoresRoute: MainStoresRoute,
+  MainSuppliersRoute: MainSuppliersRoute,
+  MainSupplyAgreementsRoute: MainSupplyAgreementsRoute,
+  MainIndexRoute: MainIndexRoute,
+}
+
+const MainRouteWithChildren = MainRoute._addFileChildren(MainRouteChildren)
+
 const rootRouteChildren: RootRouteChildren = {
-  IndexRoute: IndexRoute,
+  MainRoute: MainRouteWithChildren,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
