@@ -1,10 +1,9 @@
 use rust_decimal::Decimal;
 use serde::Deserialize;
-use ts_rs::TS;
 use validator::Validate;
 
-#[derive(Debug, Deserialize, Validate, TS)]
-#[ts(export)]
+#[derive(Debug, Deserialize, Validate)]
+#[serde(rename_all = "camelCase")]
 pub struct CreateInventoryInput {
     #[validate(length(
         min = 1,
@@ -35,8 +34,8 @@ impl CreateInventoryInput {
     }
 }
 
-#[derive(Debug, Deserialize, Validate, TS)]
-#[ts(export)]
+#[derive(Debug, Deserialize, Validate)]
+#[serde(rename_all = "camelCase")]
 pub struct UpdateInventoryInput {
     #[validate(length(
         min = 1,

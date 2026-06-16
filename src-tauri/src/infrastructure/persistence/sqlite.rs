@@ -11,6 +11,10 @@ pub async fn create_pool(app_data_dir: &Path) -> Result<SqlitePool> {
     fs::create_dir_all(app_data_dir)?;
     let db_path = app_data_dir.join("store_manager.db");
 
+    if !db_path.exists() {
+        fs::File::create(&db_path)?;
+    }
+
     let pool = SqlitePoolOptions::new()
         .max_connections(5)
         .connect(db_path.to_str().unwrap())

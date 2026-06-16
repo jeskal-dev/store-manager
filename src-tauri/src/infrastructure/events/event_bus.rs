@@ -4,12 +4,16 @@ use tokio::sync::broadcast;
 use crate::domain::events::inventory::{
     InventoryMovementRecorded, LowStockDetected, StockOutDetected,
 };
+use crate::domain::events::purchase::PurchaseCompleted;
+use crate::domain::events::sale::SaleCompleted;
 
 #[derive(Debug, Clone)]
 pub enum DomainEvent {
     InventoryMovementRecorded(InventoryMovementRecorded),
     LowStockDetected(LowStockDetected),
     StockOutDetected(StockOutDetected),
+    PurchaseCompleted(PurchaseCompleted),
+    SaleCompleted(SaleCompleted),
 }
 
 #[derive(Clone)]

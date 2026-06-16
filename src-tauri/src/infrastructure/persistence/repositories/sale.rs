@@ -1,44 +1,21 @@
+use std::str::FromStr;
+
 use async_trait::async_trait;
-use chrono::{DateTime, Utc};
-use sqlx::prelude::FromRow;
+use rust_decimal::Decimal;
 use sqlx::SqlitePool;
 use uuid::Uuid;
 
 use anyhow::Result;
 
-use crate::domain::aggregates::sale::Sales;
+use crate::domain::aggregates::sale::Sale;
 use crate::domain::entities::sale_item::SaleItem;
 use crate::domain::repositories::sale::SalesRepository;
 use crate::domain::repositories::Repository;
-use crate::domain::value_objects::common::{Code, Money};
 use crate::domain::value_objects::sale::PaymentMethod;
 use crate::shared::criteria::{Criteria, PaginatedResult, PaginationMeta};
 
+use super::row_types::SalesRow;
 use super::search_builder::{push_filter_condition, push_filter_value, push_sort};
-
-#[derive(FromRow)]
-struct SalesRow {
-    id: Uuid,
-    store_id: Uuid,
-    sale_code: Code,
-    total: Money,
-    payment_method: PaymentMethod,
-    sale_date: DateTime<Utc>,
-}
-
-impl From<SalesRow> for Sales {
-    fn from(r: SalesRow) -> Self {
-        Self {
-            id: r.id,
-            store_id: r.store_id,
-            sale_code: r.sale_code,
-            total: r.total,
-            payment_method: r.payment_method,
-            sale_date: r.sale_date,
-            items: Vec::new(),
-        }
-    }
-}
 
 #[derive(Clone)]
 pub struct SqliteSalesRepository {
@@ -48,18 +25,6 @@ pub struct SqliteSalesRepository {
 impl SqliteSalesRepository {
     pub fn new(pool: SqlitePool) -> Self {
         Self { pool }
-    }
-
-    fn to_sales(row: SalesRow, items: Vec<SaleItem>) -> Sales {
-        Sales {
-            id: row.id,
-            store_id: row.store_id,
-            sale_code: row.sale_code,
-            total: row.total,
-            payment_method: row.payment_method,
-            sale_date: row.sale_date,
-            items,
-        }
     }
 
     async fn load_items(&self, sale_id: Uuid) -> Result<Vec<SaleItem>> {
@@ -72,8 +37,8 @@ impl SqliteSalesRepository {
 }
 
 #[async_trait]
-impl Repository<Sales> for SqliteSalesRepository {
-    async fn find_by_id(&self, id: Uuid) -> Result<Option<Sales>> {
+impl Repository<Sale> for SqliteSalesRepository {
+    async fn find_by_id(&self, id: Uuid) -> Result<Option<Sale>> {
         let row = sqlx::query_as::<_, SalesRow>("SELECT * FROM sales WHERE id = ?")
             .bind(id)
             .fetch_optional(&self.pool)
@@ -82,13 +47,21 @@ impl Repository<Sales> for SqliteSalesRepository {
         match row {
             Some(r) => {
                 let items = self.load_items(id).await?;
-                Ok(Some(Self::to_sales(r, items)))
+                Ok(Some(Sale::restore(
+                    r.id,
+                    r.store_id,
+                    r.sale_code,
+                    Decimal::from_str(&r.total).unwrap_or(Decimal::ZERO),
+                    PaymentMethod::from_str(&r.payment_method)?,
+                    r.sale_date,
+                    items,
+                )?))
             }
             None => Ok(None),
         }
     }
 
-    async fn search(&self, criteria: Criteria<Sales>) -> Result<PaginatedResult<Sales>> {
+    async fn search(&self, criteria: Criteria<Sale>) -> Result<PaginatedResult<Sale>> {
         let mut count_builder = sqlx::QueryBuilder::new("SELECT COUNT(*) FROM sales WHERE 1=1");
         let mut query_builder = sqlx::QueryBuilder::new("SELECT * FROM sales WHERE 1=1");
 
@@ -164,7 +137,7 @@ impl Repository<Sales> for SqliteSalesRepository {
         })
     }
 
-    async fn create(&self, entity: &Sales) -> Result<()> {
+    async fn create(&self, entity: &Sale) -> Result<()> {
         let mut tx = self.pool.begin().await?;
 
         sqlx::query(
@@ -197,7 +170,7 @@ impl Repository<Sales> for SqliteSalesRepository {
         Ok(())
     }
 
-    async fn update(&self, entity: &Sales) -> Result<()> {
+    async fn update(&self, entity: &Sale) -> Result<()> {
         let mut tx = self.pool.begin().await?;
 
         sqlx::query(
@@ -274,7 +247,7 @@ impl Repository<Sales> for SqliteSalesRepository {
 
 #[async_trait]
 impl SalesRepository for SqliteSalesRepository {
-    async fn find_by_code(&self, code: &str) -> Result<Option<Sales>> {
+    async fn find_by_code(&self, code: &str) -> Result<Option<Sale>> {
         let row = sqlx::query_as::<_, SalesRow>("SELECT * FROM sales WHERE sale_code = ?")
             .bind(code)
             .fetch_optional(&self.pool)
@@ -283,13 +256,21 @@ impl SalesRepository for SqliteSalesRepository {
         match row {
             Some(r) => {
                 let items = self.load_items(r.id).await?;
-                Ok(Some(Self::to_sales(r, items)))
+                Ok(Some(Sale::restore(
+                    r.id,
+                    r.store_id,
+                    r.sale_code,
+                    Decimal::from_str(&r.total).unwrap_or(Decimal::ZERO),
+                    PaymentMethod::from_str(&r.payment_method)?,
+                    r.sale_date,
+                    items,
+                )?))
             }
             None => Ok(None),
         }
     }
 
-    async fn find_by_store(&self, store_id: Uuid) -> Result<Vec<Sales>> {
+    async fn find_by_store(&self, store_id: Uuid) -> Result<Vec<Sale>> {
         let rows = sqlx::query_as::<_, SalesRow>("SELECT * FROM sales WHERE store_id = ?")
             .bind(store_id)
             .fetch_all(&self.pool)

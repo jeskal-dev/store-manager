@@ -1,35 +1,54 @@
 {
   "$schema": "https://schema.tauri.app/config/2",
-  "productName": "store-manager",
-  "version": "0.1.0",
-  "identifier": "com.jeskall-dev.store-manager",
-  "build": {
-    "beforeDevCommand": "pnpm dev",
-    "devUrl": "http://localhost:1420",
-    "beforeBuildCommand": "pnpm build",
-    "frontendDist": "../dist"
-  },
   "app": {
-    "windows": [
-      {
-        "title": "store-manager",
-        "width": 800,
-        "height": 600
-      }
-    ],
     "security": {
       "csp": null
-    }
+    },
+    "windows": [
+      {
+        "height": 600,
+        "title": "store-manager",
+        "width": 800
+      }
+    ]
+  },
+  "build": {
+    "beforeBuildCommand": "pnpm build",
+    "beforeDevCommand": "pnpm dev",
+    "devUrl": "http://localhost:1420",
+    "frontendDist": "../dist"
   },
   "bundle": {
     "active": true,
-    "targets": "all",
     "icon": [
       "icons/32x32.png",
       "icons/128x128.png",
       "icons/128x128@2x.png",
       "icons/icon.icns",
       "icons/icon.ico"
-    ]
-  }
+    ],
+    "targets": "all"
+  },
+  "identifier": "com.jeskall-dev.store-manager",
+  "plugins": {
+    "typegen": {
+      "excludePatterns": null,
+      "force": false,
+      "includePatterns": null,
+      "includePrivate": false,
+      "outputPath": "./src/client",
+      "projectPath": "./src-tauri",
+      "validationLibrary": "zod",
+      "verbose": false,
+      "visualizeDeps": false,
+      "typeMappings": {
+        "Uuid": "string",
+        "DateTime<Utc>": "string",
+        "Decimal": "string",
+        "Value": "unknown"
+      }
+    }
+  },
+  "productName": "store-manager",
+  "version": "0.1.0"
 }

@@ -1,11 +1,10 @@
 use crate::shared::criteria::{Criteria, FilterItem, Operator, Pagination, Sort, SortOrder};
 use serde::Deserialize;
-use ts_rs::TS;
 use uuid::Uuid;
 use validator::Validate;
 
-#[derive(Debug, Deserialize, Validate, TS)]
-#[ts(export)]
+#[derive(Debug, Deserialize, Validate)]
+#[serde(rename_all = "camelCase")]
 pub struct PaginationInput {
     #[validate(range(min = 1, message = "Page must be at least 1"))]
     pub page: u32,
@@ -26,8 +25,8 @@ impl TryInto<Pagination> for PaginationInput {
     }
 }
 
-#[derive(Debug, Deserialize, Validate, TS)]
-#[ts(export)]
+#[derive(Debug, Deserialize, Validate)]
+#[serde(rename_all = "camelCase")]
 pub struct FilterItemInput {
     #[validate(length(min = 1, message = "Filter field cannot be empty"))]
     pub field: String,
@@ -44,8 +43,8 @@ impl TryInto<FilterItem<()>> for FilterItemInput {
     }
 }
 
-#[derive(Debug, Deserialize, Validate, TS)]
-#[ts(export)]
+#[derive(Debug, Deserialize, Validate)]
+#[serde(rename_all = "camelCase")]
 pub struct SortInput {
     #[validate(length(min = 1, message = "Sort field cannot be empty"))]
     pub field: String,
@@ -64,8 +63,8 @@ impl TryInto<Sort> for SortInput {
     }
 }
 
-#[derive(Debug, Deserialize, Validate, Default, TS)]
-#[ts(export)]
+#[derive(Debug, Deserialize, Validate, Default)]
+#[serde(rename_all = "camelCase")]
 pub struct CriteriaInput {
     #[validate(nested)] // Valida el struct interno si está presente
     pub pagination: Option<PaginationInput>,
@@ -113,8 +112,8 @@ impl TryInto<Criteria<()>> for CriteriaInput {
     }
 }
 
-#[derive(Debug, Deserialize, Validate, TS)]
-#[ts(export)]
+#[derive(Debug, Deserialize, Validate)]
+#[serde(rename_all = "camelCase")]
 pub struct ByIDInput {
     #[validate(length(min = 1, message = "ID cannot be empty"))]
     pub id: String,

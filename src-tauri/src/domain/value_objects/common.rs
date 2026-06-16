@@ -1,3 +1,5 @@
+use std::str::FromStr;
+
 use anyhow::Result;
 use rust_decimal::Decimal;
 use serde::{Deserialize, Serialize};
@@ -105,6 +107,15 @@ impl Money {
     }
 }
 
+impl TryFrom<String> for Money {
+    type Error = anyhow::Error;
+
+    fn try_from(value: String) -> Result<Self> {
+        let amount = Decimal::from_str(&value)?;
+        Money::new(amount)
+    }
+}
+
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct PhoneNumber {
     value: String,
@@ -170,7 +181,10 @@ impl Decode<'_, Sqlite> for TextValue {
     fn decode(value: SqliteValueRef<'_>) -> Result<Self, BoxDynError> {
         let s = <String as Decode<Sqlite>>::decode(value)?;
         let max_len = s.len();
-        Ok(Self { value: s, max_length: max_len })
+        Ok(Self {
+            value: s,
+            max_length: max_len,
+        })
     }
 }
 

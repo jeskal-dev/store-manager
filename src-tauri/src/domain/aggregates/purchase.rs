@@ -10,6 +10,7 @@ use crate::domain::{
 };
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
 pub struct Purchase {
     pub id: Uuid,
     pub supplier_id: Option<Uuid>,

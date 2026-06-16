@@ -7,6 +7,7 @@ use uuid::Uuid;
 use crate::domain::value_objects::common::{Money, Quantity};
 
 #[derive(Debug, Clone, Serialize, Deserialize, FromRow)]
+#[serde(rename_all = "camelCase")]
 pub struct SaleItem {
     pub id: Uuid,
     pub sale_id: Uuid,

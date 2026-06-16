@@ -11,6 +11,7 @@ use crate::domain::value_objects::{
 };
 
 #[derive(Debug, Clone, Serialize, Deserialize, FromRow)]
+#[serde(rename_all = "camelCase")]
 pub struct Inventory {
     pub id: Uuid,
     pub inventory_code: Code,

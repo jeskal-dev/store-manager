@@ -1,10 +1,9 @@
 use rust_decimal::Decimal;
 use serde::Deserialize;
-use ts_rs::TS;
 use validator::Validate;
 
-#[derive(Debug, Deserialize, Validate, TS)]
-#[ts(export)]
+#[derive(Debug, Deserialize, Validate)]
+#[serde(rename_all = "camelCase")]
 pub struct CreateSupplyAgreementInput {
     pub product_id: String,
     pub supplier_id: String,
@@ -21,8 +20,8 @@ impl CreateSupplyAgreementInput {
     }
 }
 
-#[derive(Debug, Deserialize, Validate, TS)]
-#[ts(export)]
+#[derive(Debug, Deserialize, Validate)]
+#[serde(rename_all = "camelCase")]
 pub struct UpdateSupplyAgreementInput {
     #[serde(default)]
     pub product_id: Option<String>,

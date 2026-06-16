@@ -3,6 +3,7 @@ pub mod inventory;
 pub mod inventory_movement;
 pub mod product;
 pub mod purchase;
+pub mod row_types;
 pub mod sale;
 pub mod search_builder;
 pub mod store;

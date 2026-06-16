@@ -11,68 +11,22 @@ use std::str::FromStr;
 
 use anyhow::Result;
 use async_trait::async_trait;
-use chrono::{DateTime, NaiveDate, Utc};
+use chrono::{DateTime, Utc};
 use rust_decimal::Decimal;
-use sqlx::prelude::FromRow;
 use sqlx::SqlitePool;
 use uuid::Uuid;
 
-use crate::application::dtos::analytics::{
-    DailySales, InventorySummary, PaymentMethodSales, StoreSales, TopProduct,
+use crate::application::{
+    dtos::analytics::{
+        DailySalesOutput, InventorySummaryOutput, PaymentMethodSalesOutput, StoreSalesOutput,
+        TopProductOutput,
+    },
+    ports::analytics::AnalyticsRepository,
 };
-use crate::application::use_cases::analytics::AnalyticsRepository;
 
-// ---------------------------------------------------------------------------
-// Helper row types (private)
-// ---------------------------------------------------------------------------
-
-#[derive(FromRow)]
-struct DailySalesRow {
-    date: NaiveDate,
-    total: String,
-    count: i64,
-}
-
-#[derive(FromRow)]
-struct TopProductRow {
-    product_id: Uuid,
-    product_code: String,
-    name: String,
-    total_revenue: String,
-    units_sold: i64,
-}
-
-#[derive(FromRow)]
-struct InventorySummaryRow {
-    total_products: i64,
-    low_stock: i64,
-    out_of_stock: i64,
-    total_value: String,
-}
-
-#[derive(FromRow)]
-struct StoreSalesRow {
-    store_id: Uuid,
-    store_code: String,
-    name: String,
-    total_revenue: String,
-    sales_count: i64,
-}
-
-#[derive(FromRow)]
-struct PaymentMethodSalesRow {
-    method: String,
-    total_revenue: String,
-    count: i64,
-}
-
-// ---------------------------------------------------------------------------
-// Helpers
-// ---------------------------------------------------------------------------
-
-fn parse_decimal(s: &str) -> Result<Decimal> {
-    Decimal::from_str(s).map_err(|e| anyhow::anyhow!("Failed to parse decimal '{}': {}", s, e))
-}
+use super::row_types::{
+    DailySalesRow, InventorySummaryRow, PaymentMethodSalesRow, StoreSalesRow, TopProductRow,
+};
 
 // ---------------------------------------------------------------------------
 // Repository
@@ -99,7 +53,7 @@ impl AnalyticsRepository for SqliteAnalyticsRepository {
         store_id: Option<Uuid>,
         start: DateTime<Utc>,
         end: DateTime<Utc>,
-    ) -> Result<Vec<DailySales>> {
+    ) -> Result<Vec<DailySalesOutput>> {
         // Money is stored as TEXT, so CAST each row to REAL before SUM.
         let sql = r#"
             SELECT DATE(sale_date)                                     AS date,
@@ -121,11 +75,11 @@ impl AnalyticsRepository for SqliteAnalyticsRepository {
             .fetch_all(&self.pool)
             .await?;
 
-        let data: Vec<DailySales> = rows
+        let data: Vec<DailySalesOutput> = rows
             .into_iter()
-            .map(|r| DailySales {
-                date: r.date,
-                total: parse_decimal(&r.total).unwrap_or(Decimal::ZERO),
+            .map(|r| DailySalesOutput {
+                date: r.date.and_hms_opt(0, 0, 0).unwrap().and_utc(),
+                total: Decimal::from_str(&r.total).unwrap_or(Decimal::ZERO),
                 count: r.count,
             })
             .collect();
@@ -142,7 +96,7 @@ impl AnalyticsRepository for SqliteAnalyticsRepository {
         start: DateTime<Utc>,
         end: DateTime<Utc>,
         limit: u32,
-    ) -> Result<Vec<TopProduct>> {
+    ) -> Result<Vec<TopProductOutput>> {
         let sql = r#"
             SELECT p.id                                                AS product_id,
                    p.product_code,
@@ -168,13 +122,13 @@ impl AnalyticsRepository for SqliteAnalyticsRepository {
             .fetch_all(&self.pool)
             .await?;
 
-        let data: Vec<TopProduct> = rows
+        let data: Vec<TopProductOutput> = rows
             .into_iter()
-            .map(|r| TopProduct {
+            .map(|r| TopProductOutput {
                 product_id: r.product_id,
                 product_code: r.product_code,
                 name: r.name,
-                total_revenue: parse_decimal(&r.total_revenue).unwrap_or(Decimal::ZERO),
+                total_revenue: Decimal::from_str(&r.total_revenue).unwrap_or(Decimal::ZERO),
                 units_sold: r.units_sold,
             })
             .collect();
@@ -185,7 +139,10 @@ impl AnalyticsRepository for SqliteAnalyticsRepository {
     // -----------------------------------------------------------------------
     // Inventory summary
     // -----------------------------------------------------------------------
-    async fn get_inventory_summary(&self, store_id: Option<Uuid>) -> Result<InventorySummary> {
+    async fn get_inventory_summary(
+        &self,
+        store_id: Option<Uuid>,
+    ) -> Result<InventorySummaryOutput> {
         // quantity is INTEGER (Quantity -> i32), price_local is TEXT (Money).
         let sql = r#"
             SELECT COUNT(*)                                                                 AS total_products,
@@ -202,11 +159,11 @@ impl AnalyticsRepository for SqliteAnalyticsRepository {
             .fetch_one(&self.pool)
             .await?;
 
-        Ok(InventorySummary {
+        Ok(InventorySummaryOutput {
             total_products: row.total_products,
             low_stock: row.low_stock,
             out_of_stock: row.out_of_stock,
-            total_value: parse_decimal(&row.total_value).unwrap_or(Decimal::ZERO),
+            total_value: Decimal::from_str(&row.total_value).unwrap_or(Decimal::ZERO),
         })
     }
 
@@ -217,7 +174,7 @@ impl AnalyticsRepository for SqliteAnalyticsRepository {
         &self,
         start: DateTime<Utc>,
         end: DateTime<Utc>,
-    ) -> Result<Vec<StoreSales>> {
+    ) -> Result<Vec<StoreSalesOutput>> {
         let sql = r#"
             SELECT st.id                                              AS store_id,
                    st.store_code,
@@ -237,13 +194,13 @@ impl AnalyticsRepository for SqliteAnalyticsRepository {
             .fetch_all(&self.pool)
             .await?;
 
-        let data: Vec<StoreSales> = rows
+        let data: Vec<StoreSalesOutput> = rows
             .into_iter()
-            .map(|r| StoreSales {
+            .map(|r| StoreSalesOutput {
                 store_id: r.store_id,
                 store_code: r.store_code,
                 name: r.name,
-                total_revenue: parse_decimal(&r.total_revenue).unwrap_or(Decimal::ZERO),
+                total_revenue: Decimal::from_str(&r.total_revenue).unwrap_or(Decimal::ZERO),
                 sales_count: r.sales_count,
             })
             .collect();
@@ -259,7 +216,7 @@ impl AnalyticsRepository for SqliteAnalyticsRepository {
         store_id: Option<Uuid>,
         start: DateTime<Utc>,
         end: DateTime<Utc>,
-    ) -> Result<Vec<PaymentMethodSales>> {
+    ) -> Result<Vec<PaymentMethodSalesOutput>> {
         let sql = r#"
             SELECT payment_method                                     AS method,
                    CAST(SUM(CAST(total AS REAL)) AS TEXT)             AS total_revenue,
@@ -278,11 +235,11 @@ impl AnalyticsRepository for SqliteAnalyticsRepository {
             .fetch_all(&self.pool)
             .await?;
 
-        let data: Vec<PaymentMethodSales> = rows
+        let data: Vec<PaymentMethodSalesOutput> = rows
             .into_iter()
-            .map(|r| PaymentMethodSales {
+            .map(|r| PaymentMethodSalesOutput {
                 method: r.method,
-                total_revenue: parse_decimal(&r.total_revenue).unwrap_or(Decimal::ZERO),
+                total_revenue: Decimal::from_str(&r.total_revenue).unwrap_or(Decimal::ZERO),
                 count: r.count,
             })
             .collect();

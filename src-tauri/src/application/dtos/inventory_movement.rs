@@ -1,11 +1,10 @@
-use serde::Deserialize;
-use ts_rs::TS;
+use serde::{Deserialize, Serialize};
 use validator::Validate;
 
 use crate::domain::entities::inventory_movement::InventoryMovement;
 
-#[derive(Debug, Deserialize, Validate, TS)]
-#[ts(export)]
+#[derive(Debug, Deserialize, Validate)]
+#[serde(rename_all = "camelCase")]
 pub struct RegisterPurchaseInput {
     pub inventory_id: String,
     /// Positive quantity added to stock
@@ -15,8 +14,8 @@ pub struct RegisterPurchaseInput {
     pub description: Option<String>,
 }
 
-#[derive(Debug, Deserialize, Validate, TS)]
-#[ts(export)]
+#[derive(Debug, Deserialize, Validate)]
+#[serde(rename_all = "camelCase")]
 pub struct RegisterSaleInput {
     pub inventory_id: String,
     /// Positive quantity removed from stock
@@ -26,8 +25,8 @@ pub struct RegisterSaleInput {
     pub description: Option<String>,
 }
 
-#[derive(Debug, Deserialize, Validate, TS)]
-#[ts(export)]
+#[derive(Debug, Deserialize, Validate)]
+#[serde(rename_all = "camelCase")]
 pub struct RegisterRestockInput {
     pub inventory_id: String,
     /// Positive quantity added to stock
@@ -36,8 +35,8 @@ pub struct RegisterRestockInput {
     pub description: Option<String>,
 }
 
-#[derive(Debug, Deserialize, Validate, TS)]
-#[ts(export)]
+#[derive(Debug, Deserialize, Validate)]
+#[serde(rename_all = "camelCase")]
 pub struct RegisterShrinkageInput {
     pub inventory_id: String,
     /// Positive quantity removed from stock
@@ -46,8 +45,8 @@ pub struct RegisterShrinkageInput {
     pub description: Option<String>,
 }
 
-#[derive(Debug, Deserialize, TS)]
-#[ts(export)]
+#[derive(Debug, Deserialize, Serialize)]
+#[serde(rename_all = "camelCase")]
 pub struct InventoryMovementOutput {
     pub movement_id: String,
     pub inventory_id: String,

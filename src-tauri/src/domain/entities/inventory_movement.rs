@@ -8,6 +8,7 @@ use crate::domain::value_objects::common::{Quantity, TextValue};
 use crate::domain::value_objects::inventory::MovementType;
 
 #[derive(Debug, Clone, Serialize, Deserialize, FromRow)]
+#[serde(rename_all = "camelCase")]
 pub struct InventoryMovement {
     pub id: Uuid,
     pub inventory_id: Uuid,
@@ -37,9 +38,7 @@ impl InventoryMovement {
             old_quantity: Quantity::new(old_quantity)?,
             new_quantity: Quantity::new(new_quantity)?,
             date: Utc::now(),
-            description: description
-                .map(|d| TextValue::new(d, 256))
-                .transpose()?,
+            description: description.map(|d| TextValue::new(d, 256)).transpose()?,
             purchase_item_id,
             sale_item_id,
         };
@@ -64,9 +63,7 @@ impl InventoryMovement {
             old_quantity: Quantity::new(old_quantity)?,
             new_quantity: Quantity::new(new_quantity)?,
             date,
-            description: description
-                .map(|d| TextValue::new(d, 256))
-                .transpose()?,
+            description: description.map(|d| TextValue::new(d, 256)).transpose()?,
             purchase_item_id,
             sale_item_id,
         };

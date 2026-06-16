@@ -1,29 +1,15 @@
 import { createFileRoute } from "@tanstack/react-router";
+import { WipPage } from "@/components/shared/wip-page";
 
 export const Route = createFileRoute("/_main/sales/register")({
-  component: RouteComponent,
+  component: () => (
+    <WipPage
+      title="Registrar venta"
+      description="Crear una nueva transacción de venta"
+      sections={[
+        { type: "form", fields: 6 },
+        { type: "table", rows: 3, cols: 4 },
+      ]}
+    />
+  ),
 });
-
-function RouteComponent() {
-  return <RegisterSalePage />;
-}
-
-function RegisterSalePage() {
-  return (
-    <div className="rise-in">
-      <div className="mb-6">
-        <h1 className="display-title text-2xl font-bold text-[var(--sea-ink)]">
-          Registrar venta
-        </h1>
-        <p className="mt-1 text-sm" style={{ color: "var(--sea-ink-soft)" }}>
-          Crea una nueva venta
-        </p>
-      </div>
-      <div className="island-shell rounded-xl p-8 text-center">
-        <p className="text-sm" style={{ color: "var(--sea-ink-soft)" }}>
-          Próximamente — Formulario de registro de venta
-        </p>
-      </div>
-    </div>
-  );
-}

@@ -7,8 +7,8 @@ use tauri::State;
 use uuid::Uuid;
 
 use crate::application::dtos::analytics::{
-    DashboardData, DashboardInput, DateRangeInput, DailySales, InventorySummary,
-    PaymentMethodSales, StoreSales, TopProduct, TopProductsInput,
+    DailySalesOutput, DashboardData, DashboardInput, DateRangeInput, InventorySummaryOutput,
+    PaymentMethodSalesOutput, StoreSalesOutput, TopProductOutput, TopProductsInput,
 };
 use crate::application::use_cases::analytics::ForAnalyticsUseCases;
 use crate::infrastructure::di::AppState;
@@ -34,7 +34,7 @@ pub async fn get_dashboard_data(
 pub async fn get_sales_over_time(
     state: State<'_, AppState>,
     input: DateRangeInput,
-) -> Result<Vec<DailySales>, String> {
+) -> Result<Vec<DailySalesOutput>, String> {
     state
         .use_cases
         .analytics
@@ -48,7 +48,7 @@ pub async fn get_sales_over_time(
 pub async fn get_top_products(
     state: State<'_, AppState>,
     input: TopProductsInput,
-) -> Result<Vec<TopProduct>, String> {
+) -> Result<Vec<TopProductOutput>, String> {
     state
         .use_cases
         .analytics
@@ -62,7 +62,7 @@ pub async fn get_top_products(
 pub async fn get_inventory_summary(
     state: State<'_, AppState>,
     store_id: Option<String>,
-) -> Result<InventorySummary, String> {
+) -> Result<InventorySummaryOutput, String> {
     let sid = match store_id {
         Some(s) if !s.is_empty() => Some(Uuid::parse_str(&s).map_err(|e| e.to_string())?),
         _ => None,
@@ -80,7 +80,7 @@ pub async fn get_inventory_summary(
 pub async fn get_sales_by_store(
     state: State<'_, AppState>,
     input: DateRangeInput,
-) -> Result<Vec<StoreSales>, String> {
+) -> Result<Vec<StoreSalesOutput>, String> {
     state
         .use_cases
         .analytics
@@ -94,7 +94,7 @@ pub async fn get_sales_by_store(
 pub async fn get_sales_by_payment_method(
     state: State<'_, AppState>,
     input: DateRangeInput,
-) -> Result<Vec<PaymentMethodSales>, String> {
+) -> Result<Vec<PaymentMethodSalesOutput>, String> {
     state
         .use_cases
         .analytics

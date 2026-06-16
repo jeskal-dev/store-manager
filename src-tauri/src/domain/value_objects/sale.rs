@@ -1,3 +1,5 @@
+use std::str::FromStr;
+
 use serde::{Deserialize, Serialize};
 use sqlx::{
     decode::Decode,
@@ -18,6 +20,28 @@ pub enum PaymentMethod {
     BankTransfer,
     #[strum(serialize = "other")]
     Other,
+}
+
+impl FromStr for PaymentMethod {
+    type Err = anyhow::Error;
+
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
+        match s.to_lowercase().as_str() {
+            "cash" => Ok(Self::Cash),
+            "credit_card" => Ok(Self::CreditCard),
+            "bank_transfer" => Ok(Self::BankTransfer),
+            "other" => Ok(Self::Other),
+            _ => Err(anyhow::anyhow!("Invalid payment method: {}", s)),
+        }
+    }
+}
+
+impl TryFrom<&str> for PaymentMethod {
+    type Error = anyhow::Error;
+
+    fn try_from(s: &str) -> Result<Self, Self::Error> {
+        Self::from_str(s)
+    }
 }
 
 impl Type<Sqlite> for PaymentMethod {

@@ -1,6 +1,7 @@
+use std::str::FromStr;
+
 use async_trait::async_trait;
-use chrono::{DateTime, Utc};
-use sqlx::prelude::FromRow;
+use rust_decimal::Decimal;
 use sqlx::SqlitePool;
 use uuid::Uuid;
 
@@ -10,36 +11,10 @@ use crate::domain::aggregates::purchase::Purchase;
 use crate::domain::entities::purchase_item::PurchaseItem;
 use crate::domain::repositories::purchase::PurchaseRepository;
 use crate::domain::repositories::Repository;
-use crate::domain::value_objects::common::{Code, Money, TextValue};
 use crate::shared::criteria::{Criteria, PaginatedResult, PaginationMeta};
 
+use super::row_types::PurchaseRow;
 use super::search_builder::{push_filter_condition, push_filter_value, push_sort};
-
-#[derive(FromRow)]
-struct PurchaseRow {
-    id: Uuid,
-    supplier_id: Option<Uuid>,
-    store_id: Uuid,
-    total_cost: Money,
-    purchase_date: DateTime<Utc>,
-    description: Option<TextValue>,
-    purchase_code: Code,
-}
-
-impl From<PurchaseRow> for Purchase {
-    fn from(r: PurchaseRow) -> Self {
-        Self {
-            id: r.id,
-            supplier_id: r.supplier_id,
-            store_id: r.store_id,
-            total_cost: r.total_cost,
-            purchase_date: r.purchase_date,
-            description: r.description,
-            purchase_code: r.purchase_code,
-            items: Vec::new(),
-        }
-    }
-}
 
 #[derive(Clone)]
 pub struct SqlitePurchaseRepository {
@@ -49,19 +24,6 @@ pub struct SqlitePurchaseRepository {
 impl SqlitePurchaseRepository {
     pub fn new(pool: SqlitePool) -> Self {
         Self { pool }
-    }
-
-    fn to_purchase(row: PurchaseRow, items: Vec<PurchaseItem>) -> Purchase {
-        Purchase {
-            id: row.id,
-            supplier_id: row.supplier_id,
-            store_id: row.store_id,
-            total_cost: row.total_cost,
-            purchase_date: row.purchase_date,
-            description: row.description,
-            purchase_code: row.purchase_code,
-            items,
-        }
     }
 
     async fn load_items(&self, purchase_id: Uuid) -> Result<Vec<PurchaseItem>> {
@@ -84,7 +46,16 @@ impl Repository<Purchase> for SqlitePurchaseRepository {
         match row {
             Some(r) => {
                 let items = self.load_items(id).await?;
-                Ok(Some(Self::to_purchase(r, items)))
+                Ok(Some(Purchase::restore(
+                    r.id,
+                    r.supplier_id,
+                    r.store_id,
+                    Decimal::from_str(&r.total_cost).unwrap_or(Decimal::ZERO),
+                    r.purchase_date,
+                    r.description,
+                    r.purchase_code,
+                    items,
+                )?))
             }
             None => Ok(None),
         }
@@ -288,7 +259,16 @@ impl PurchaseRepository for SqlitePurchaseRepository {
         match row {
             Some(r) => {
                 let items = self.load_items(r.id).await?;
-                Ok(Some(Self::to_purchase(r, items)))
+                Ok(Some(Purchase::restore(
+                    r.id,
+                    r.supplier_id,
+                    r.store_id,
+                    Decimal::from_str(&r.total_cost).unwrap_or(Decimal::ZERO),
+                    r.purchase_date,
+                    r.description,
+                    r.purchase_code,
+                    items,
+                )?))
             }
             None => Ok(None),
         }

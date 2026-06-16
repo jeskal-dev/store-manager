@@ -86,6 +86,32 @@ impl EventDispatcher {
                     ));
                 }
             }
+            DomainEvent::PurchaseCompleted(evt) => {
+                logger.info(&format!(
+                    "[EventDispatcher] Purchase completed: {}",
+                    evt.purchase_id
+                ));
+
+                if let Err(e) = handle.emit("purchase:completed", &evt) {
+                    logger.error(&format!(
+                        "[EventDispatcher] Failed to emit purchase:completed: {}",
+                        e
+                    ));
+                }
+            }
+            DomainEvent::SaleCompleted(evt) => {
+                logger.info(&format!(
+                    "[EventDispatcher] Sale completed: {}",
+                    evt.sale_id
+                ));
+
+                if let Err(e) = handle.emit("sale:completed", &evt) {
+                    logger.error(&format!(
+                        "[EventDispatcher] Failed to emit sale:completed: {}",
+                        e
+                    ));
+                }
+            }
         }
     }
 }

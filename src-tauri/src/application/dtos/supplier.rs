@@ -1,9 +1,8 @@
 use serde::Deserialize;
-use ts_rs::TS;
 use validator::Validate;
 
-#[derive(Debug, Deserialize, Validate, TS)]
-#[ts(export)]
+#[derive(Debug, Deserialize, Validate)]
+#[serde(rename_all = "camelCase")]
 pub struct CreateSupplierInput {
     #[validate(length(
         min = 1,
@@ -35,8 +34,8 @@ pub struct CreateSupplierInput {
     pub active: bool,
 }
 
-#[derive(Debug, Deserialize, Validate, TS)]
-#[ts(export)]
+#[derive(Debug, Deserialize, Validate)]
+#[serde(rename_all = "camelCase")]
 pub struct UpdateSupplierInput {
     #[validate(length(
         min = 1,

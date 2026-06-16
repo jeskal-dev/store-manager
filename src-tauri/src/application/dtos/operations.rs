@@ -1,13 +1,12 @@
 use serde::{Deserialize, Serialize};
-use ts_rs::TS;
 use validator::Validate;
 
 use crate::domain::aggregates::purchase::Purchase;
-use crate::domain::aggregates::sale::Sales;
+use crate::domain::aggregates::sale::Sale;
 
 /// Input for a single purchase item.
-#[derive(Debug, Deserialize, Serialize, Validate, TS)]
-#[ts(export)]
+#[derive(Debug, Deserialize, Serialize, Validate)]
+#[serde(rename_all = "camelCase")]
 pub struct PurchaseItemInput {
     /// Product ID to find its inventory record in the store.
     #[validate(length(min = 1, message = "Product ID is required"))]
@@ -25,8 +24,8 @@ pub struct PurchaseItemInput {
 /// Input to register a full purchase operation.
 ///
 /// Creates the purchase record AND registers inventory movements for each item.
-#[derive(Debug, Deserialize, Serialize, Validate, TS)]
-#[ts(export)]
+#[derive(Debug, Deserialize, Serialize, Validate)]
+#[serde(rename_all = "camelCase")]
 pub struct RegisterPurchaseOperationInput {
     /// Store where the purchase is made.
     #[validate(length(min = 1, message = "Store ID is required"))]
@@ -44,15 +43,13 @@ pub struct RegisterPurchaseOperationInput {
     pub description: Option<String>,
 
     /// At least one item required.
-    #[validate(
-        length(min = 1, message = "Purchase must have at least one item")
-    )]
+    #[validate(length(min = 1, message = "Purchase must have at least one item"))]
     pub items: Vec<PurchaseItemInput>,
 }
 
 /// Output after successfully registering a purchase.
-#[derive(Debug, TS)]
-#[ts(export)]
+#[derive(Debug, Serialize)]
+#[serde(rename_all = "camelCase")]
 pub struct PurchaseOperationOutput {
     pub purchase_id: String,
     pub purchase_code: String,
@@ -86,8 +83,8 @@ impl PurchaseOperationOutput {
 // ---------------------------------------------------------------------------
 
 /// Input for a single sale item.
-#[derive(Debug, Deserialize, Serialize, Validate, TS)]
-#[ts(export)]
+#[derive(Debug, Deserialize, Serialize, Validate)]
+#[serde(rename_all = "camelCase")]
 pub struct SaleItemInput {
     /// Product ID to find its inventory record in the store.
     #[validate(length(min = 1, message = "Product ID is required"))]
@@ -105,8 +102,8 @@ pub struct SaleItemInput {
 /// Input to register a full sale operation.
 ///
 /// Creates the sale record AND registers inventory movements for each item.
-#[derive(Debug, Deserialize, Serialize, Validate, TS)]
-#[ts(export)]
+#[derive(Debug, Deserialize, Serialize, Validate)]
+#[serde(rename_all = "camelCase")]
 pub struct RegisterSaleOperationInput {
     /// Store where the sale is made.
     #[validate(length(min = 1, message = "Store ID is required"))]
@@ -126,8 +123,8 @@ pub struct RegisterSaleOperationInput {
 }
 
 /// Output after successfully registering a sale.
-#[derive(Debug, TS)]
-#[ts(export)]
+#[derive(Debug, Serialize)]
+#[serde(rename_all = "camelCase")]
 pub struct SaleOperationOutput {
     pub sale_id: String,
     pub sale_code: String,
@@ -140,7 +137,7 @@ pub struct SaleOperationOutput {
 }
 
 impl SaleOperationOutput {
-    pub fn from_sale(sale: &Sales, movements_registered: usize) -> Self {
+    pub fn from_sale(sale: &Sale, movements_registered: usize) -> Self {
         Self {
             sale_id: sale.id.to_string(),
             sale_code: sale.sale_code.value().to_string(),

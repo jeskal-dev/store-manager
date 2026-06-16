@@ -12,7 +12,8 @@ use serde::{Deserialize, Serialize};
 use uuid::Uuid;
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct Sales {
+#[serde(rename_all = "camelCase")]
+pub struct Sale {
     pub id: Uuid,
     pub store_id: Uuid,
     pub sale_code: Code,
@@ -22,7 +23,7 @@ pub struct Sales {
     pub items: Vec<SaleItem>,
 }
 
-impl Sales {
+impl Sale {
     pub fn new(
         store_id: Uuid,
         sale_code: String,

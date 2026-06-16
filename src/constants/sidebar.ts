@@ -8,12 +8,12 @@ import {
   IconTags,
   IconTruck,
 } from "@tabler/icons-react";
-import type { NavMenuGroup } from "@/types/navigation";
+import type { SidebarSection } from "@/types/navigation";
 
-export const SIDEBAR_NAV: NavMenuGroup[] = [
+export const SIDEBAR_NAV: SidebarSection[] = [
   {
     label: "General",
-    items: [
+    links: [
       {
         label: "Tablero",
         url: "/",
@@ -23,12 +23,12 @@ export const SIDEBAR_NAV: NavMenuGroup[] = [
   },
   {
     label: "Inventario",
-    items: [
+    links: [
       {
         label: "Inventario",
         icon: IconPackage,
-        items: [
-          { label: "Todos los items", url: "/inventory" },
+        sublinks: [
+          { label: "Todos los productos", url: "/inventory" },
           { label: "Movimientos", url: "/inventory/movements" },
           { label: "Reposición", url: "/inventory/restock" },
           { label: "Merma", url: "/inventory/shrinkage" },
@@ -38,11 +38,11 @@ export const SIDEBAR_NAV: NavMenuGroup[] = [
   },
   {
     label: "Ventas",
-    items: [
+    links: [
       {
         label: "Ventas",
         icon: IconReceipt,
-        items: [
+        sublinks: [
           { label: "Todas las ventas", url: "/sales" },
           { label: "Registrar venta", url: "/sales/register" },
         ],
@@ -51,11 +51,11 @@ export const SIDEBAR_NAV: NavMenuGroup[] = [
   },
   {
     label: "Compras",
-    items: [
+    links: [
       {
         label: "Compras",
         icon: IconShoppingCart,
-        items: [
+        sublinks: [
           { label: "Todas las compras", url: "/purchases" },
           { label: "Registrar compra", url: "/purchases/register" },
         ],
@@ -64,7 +64,7 @@ export const SIDEBAR_NAV: NavMenuGroup[] = [
   },
   {
     label: "Catálogo",
-    items: [
+    links: [
       { label: "Productos", url: "/products", icon: IconTags },
       { label: "Tiendas", url: "/stores", icon: IconBuildingStore },
       { label: "Proveedores", url: "/suppliers", icon: IconTruck },
