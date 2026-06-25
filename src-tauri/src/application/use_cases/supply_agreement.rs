@@ -9,15 +9,15 @@ use crate::shared::criteria::{Criteria, PaginatedResult};
 
 use super::super::dtos::shared::CriteriaInput;
 use super::super::dtos::supply_agreement::{
-    CreateSupplyAgreementInput, UpdateSupplyAgreementInput,
+    CreateSupplyAgreementInput, SupplyAgreementOutput, UpdateSupplyAgreementInput,
 };
 
 #[async_trait]
 pub trait ForSupplyAgreementUseCases {
-    async fn create(&self, input: CreateSupplyAgreementInput) -> Result<SupplyAgreement>;
-    async fn update(&self, id: Uuid, input: UpdateSupplyAgreementInput) -> Result<SupplyAgreement>;
+    async fn create(&self, input: CreateSupplyAgreementInput) -> Result<SupplyAgreementOutput>;
+    async fn update(&self, id: Uuid, input: UpdateSupplyAgreementInput) -> Result<SupplyAgreementOutput>;
     async fn delete(&self, id: Uuid) -> Result<()>;
-    async fn search(&self, input: CriteriaInput) -> Result<PaginatedResult<SupplyAgreement>>;
+    async fn search(&self, input: CriteriaInput) -> Result<PaginatedResult<SupplyAgreementOutput>>;
 }
 
 pub struct ForSupplyAgreementInteractor<R: SupplyAgreementRepository> {
@@ -34,7 +34,7 @@ impl<R: SupplyAgreementRepository> ForSupplyAgreementInteractor<R> {
 impl<R: SupplyAgreementRepository + Sync> ForSupplyAgreementUseCases
     for ForSupplyAgreementInteractor<R>
 {
-    async fn create(&self, input: CreateSupplyAgreementInput) -> Result<SupplyAgreement> {
+    async fn create(&self, input: CreateSupplyAgreementInput) -> Result<SupplyAgreementOutput> {
         let product_id = Uuid::parse_str(&input.product_id)?;
         let supplier_id = Uuid::parse_str(&input.supplier_id)?;
         let cost = input.parse_cost()?;
@@ -51,9 +51,9 @@ impl<R: SupplyAgreementRepository + Sync> ForSupplyAgreementUseCases
         let agreement = SupplyAgreement::new(product_id, supplier_id, cost, input.active)?;
 
         self.repo.create(&agreement).await?;
-        Ok(agreement)
+        Ok(SupplyAgreementOutput::from(&agreement))
     }
-    async fn update(&self, id: Uuid, input: UpdateSupplyAgreementInput) -> Result<SupplyAgreement> {
+    async fn update(&self, id: Uuid, input: UpdateSupplyAgreementInput) -> Result<SupplyAgreementOutput> {
         let mut agreement = self
             .repo
             .find_by_id(id)
@@ -99,15 +99,19 @@ impl<R: SupplyAgreementRepository + Sync> ForSupplyAgreementUseCases
         }
 
         self.repo.update(&agreement).await?;
-        Ok(agreement)
+        Ok(SupplyAgreementOutput::from(&agreement))
     }
     async fn delete(&self, id: Uuid) -> Result<()> {
         self.repo.delete(id).await?;
         Ok(())
     }
 
-    async fn search(&self, input: CriteriaInput) -> Result<PaginatedResult<SupplyAgreement>> {
+    async fn search(&self, input: CriteriaInput) -> Result<PaginatedResult<SupplyAgreementOutput>> {
         let criteria: Criteria<()> = input.try_into()?;
-        self.repo.search(criteria.into()).await
+        let result = self.repo.search(criteria.into()).await?;
+        Ok(PaginatedResult {
+            data: result.data.into_iter().map(|a| SupplyAgreementOutput::from(&a)).collect(),
+            meta: result.meta,
+        })
     }
 }

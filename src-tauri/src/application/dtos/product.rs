@@ -1,6 +1,8 @@
 use rust_decimal::Decimal;
-use serde::Deserialize;
+use serde::{Deserialize, Serialize};
 use validator::Validate;
+
+use crate::domain::entities::product::Product;
 
 
 #[derive(Debug, Deserialize, Validate)]
@@ -60,6 +62,28 @@ impl UpdateProductInput {
         match &self.initial_price {
             Some(s) => Ok(Some(s.parse::<Decimal>()?)),
             None => Ok(None),
+        }
+    }
+}
+
+#[derive(Debug, Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct ProductOutput {
+    pub id: String,
+    pub product_code: String,
+    pub name: String,
+    pub initial_price: String,
+    pub active: bool,
+}
+
+impl From<&Product> for ProductOutput {
+    fn from(product: &Product) -> Self {
+        Self {
+            id: product.id.to_string(),
+            product_code: product.product_code.value().to_string(),
+            name: product.name.value().to_string(),
+            initial_price: product.initial_price.formatted(),
+            active: product.active,
         }
     }
 }

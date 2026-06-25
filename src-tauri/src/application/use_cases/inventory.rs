@@ -8,15 +8,15 @@ use crate::domain::{entities::inventory::Inventory, value_objects::common::Code}
 
 use crate::shared::criteria::{Criteria, PaginatedResult};
 
-use super::super::dtos::inventory::{CreateInventoryInput, UpdateInventoryInput};
+use super::super::dtos::inventory::{CreateInventoryInput, InventoryOutput, UpdateInventoryInput};
 use super::super::dtos::shared::CriteriaInput;
 
 #[async_trait]
 pub trait ForInventoryUseCases {
-    async fn create(&self, input: CreateInventoryInput) -> Result<Inventory>;
-    async fn update(&self, id: Uuid, input: UpdateInventoryInput) -> Result<Inventory>;
+    async fn create(&self, input: CreateInventoryInput) -> Result<InventoryOutput>;
+    async fn update(&self, id: Uuid, input: UpdateInventoryInput) -> Result<InventoryOutput>;
     async fn delete(&self, id: Uuid) -> Result<()>;
-    async fn search(&self, input: CriteriaInput) -> Result<PaginatedResult<Inventory>>;
+    async fn search(&self, input: CriteriaInput) -> Result<PaginatedResult<InventoryOutput>>;
 }
 
 pub struct ForInventoryInteractor<R: InventoryRepository> {
@@ -31,7 +31,7 @@ impl<R: InventoryRepository> ForInventoryInteractor<R> {
 
 #[async_trait]
 impl<R: InventoryRepository + Sync> ForInventoryUseCases for ForInventoryInteractor<R> {
-    async fn create(&self, input: CreateInventoryInput) -> Result<Inventory> {
+    async fn create(&self, input: CreateInventoryInput) -> Result<InventoryOutput> {
         let price_local = input.parse_price_local()?;
         let store_id = Uuid::parse_str(&input.store_id)?;
         let product_id = Uuid::parse_str(&input.product_id)?;
@@ -57,9 +57,9 @@ impl<R: InventoryRepository + Sync> ForInventoryUseCases for ForInventoryInterac
         )?;
 
         self.repo.create(&inventory).await?;
-        Ok(inventory)
+        Ok(InventoryOutput::from(&inventory))
     }
-    async fn update(&self, id: Uuid, input: UpdateInventoryInput) -> Result<Inventory> {
+    async fn update(&self, id: Uuid, input: UpdateInventoryInput) -> Result<InventoryOutput> {
         let mut inventory = self
             .repo
             .find_by_id(id)
@@ -85,15 +85,19 @@ impl<R: InventoryRepository + Sync> ForInventoryUseCases for ForInventoryInterac
         }
 
         self.repo.update(&inventory).await?;
-        Ok(inventory)
+        Ok(InventoryOutput::from(&inventory))
     }
     async fn delete(&self, id: Uuid) -> Result<()> {
         self.repo.delete(id).await?;
         Ok(())
     }
 
-    async fn search(&self, input: CriteriaInput) -> Result<PaginatedResult<Inventory>> {
+    async fn search(&self, input: CriteriaInput) -> Result<PaginatedResult<InventoryOutput>> {
         let criteria: Criteria<()> = input.try_into()?;
-        self.repo.search(criteria.into()).await
+        let result = self.repo.search(criteria.into()).await?;
+        Ok(PaginatedResult {
+            data: result.data.into_iter().map(|i| InventoryOutput::from(&i)).collect(),
+            meta: result.meta,
+        })
     }
 }

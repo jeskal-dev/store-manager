@@ -1,10 +1,9 @@
 use tauri::State;
 use uuid::Uuid;
 
-use crate::application::dtos::inventory::{CreateInventoryInput, UpdateInventoryInput};
+use crate::application::dtos::inventory::{CreateInventoryInput, InventoryOutput, UpdateInventoryInput};
 use crate::application::dtos::shared::CriteriaInput;
 use crate::application::use_cases::inventory::ForInventoryUseCases;
-use crate::domain::entities::inventory::Inventory;
 use crate::infrastructure::di::AppState;
 use crate::shared::criteria::PaginatedResult;
 
@@ -12,7 +11,7 @@ use crate::shared::criteria::PaginatedResult;
 pub async fn create_inventory(
     state: State<'_, AppState>,
     input: CreateInventoryInput,
-) -> Result<Inventory, String> {
+) -> Result<InventoryOutput, String> {
     state
         .use_cases
         .inventory
@@ -26,7 +25,7 @@ pub async fn update_inventory(
     state: State<'_, AppState>,
     id: String,
     input: UpdateInventoryInput,
-) -> Result<Inventory, String> {
+) -> Result<InventoryOutput, String> {
     let uuid = Uuid::parse_str(&id).map_err(|e| e.to_string())?;
     state
         .use_cases
@@ -54,7 +53,7 @@ pub async fn delete_inventory(
 pub async fn search_inventories(
     state: State<'_, AppState>,
     input: CriteriaInput,
-) -> Result<PaginatedResult<Inventory>, String> {
+) -> Result<PaginatedResult<InventoryOutput>, String> {
     state
         .use_cases
         .inventory

@@ -121,6 +121,9 @@
     --radius-2xl: calc(var(--radius) * 1.8);
     --radius-3xl: calc(var(--radius) * 2.2);
     --radius-4xl: calc(var(--radius) * 2.6);
+
+    --animation-collapse-down: collapsible-down 0.2s ease-out;
+    --animation-collapse-up: collapsible-up 0.2s ease-out;
 }
 
 
@@ -131,5 +134,26 @@
 
     body {
         @apply bg-background text-foreground;
+    }
+}
+
+
+@keyframes collapsible-down {
+    from {
+        height: 0;
+    }
+
+    to {
+        height: var(--radix-collapsible-content-height);
+    }
+}
+
+@keyframes collapsible-up {
+    from {
+        height: var(--radix-collapsible-content-height);
+    }
+
+    to {
+        height: 0;
     }
 }

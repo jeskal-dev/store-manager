@@ -1,8 +1,4 @@
-import {
-  keepPreviousData,
-  queryOptions,
-  useQuery,
-} from "@tanstack/react-query";
+import { keepPreviousData, queryOptions } from "@tanstack/react-query";
 import { getDashboardData } from "@/client/commands";
 import type { DashboardData } from "@/client/types";
 
@@ -23,7 +19,3 @@ export const dashboardQuery = ({ days = 30, storeId }: UseDashboardOptions) =>
       }),
     placeholderData: keepPreviousData,
   });
-
-export function useDashboard({ days = 30, storeId }: UseDashboardOptions = {}) {
-  return useQuery(dashboardQuery({ days, storeId }));
-}

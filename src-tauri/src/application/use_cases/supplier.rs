@@ -9,14 +9,14 @@ use crate::domain::value_objects::common::{Code, Name, PhoneNumber, TextValue};
 use crate::shared::criteria::{Criteria, PaginatedResult};
 
 use super::super::dtos::shared::CriteriaInput;
-use super::super::dtos::supplier::{CreateSupplierInput, UpdateSupplierInput};
+use super::super::dtos::supplier::{CreateSupplierInput, SupplierOutput, UpdateSupplierInput};
 
 #[async_trait]
 pub trait ForSupplierUseCases {
-    async fn create(&self, input: CreateSupplierInput) -> Result<Supplier>;
-    async fn update(&self, id: Uuid, input: UpdateSupplierInput) -> Result<Supplier>;
+    async fn create(&self, input: CreateSupplierInput) -> Result<SupplierOutput>;
+    async fn update(&self, id: Uuid, input: UpdateSupplierInput) -> Result<SupplierOutput>;
     async fn delete(&self, id: Uuid) -> Result<()>;
-    async fn search(&self, input: CriteriaInput) -> Result<PaginatedResult<Supplier>>;
+    async fn search(&self, input: CriteriaInput) -> Result<PaginatedResult<SupplierOutput>>;
 }
 
 pub struct ForSupplierInteractor<R: SupplierRepository> {
@@ -31,7 +31,7 @@ impl<R: SupplierRepository> ForSupplierInteractor<R> {
 
 #[async_trait]
 impl<R: SupplierRepository + Sync> ForSupplierUseCases for ForSupplierInteractor<R> {
-    async fn create(&self, input: CreateSupplierInput) -> Result<Supplier> {
+    async fn create(&self, input: CreateSupplierInput) -> Result<SupplierOutput> {
         if self.repo.exists_by_code(&input.supplier_code).await? {
             anyhow::bail!("A supplier with this code already exists");
         }
@@ -45,10 +45,10 @@ impl<R: SupplierRepository + Sync> ForSupplierUseCases for ForSupplierInteractor
             input.active,
         )?;
         self.repo.create(&supplier).await?;
-        Ok(supplier)
+        Ok(SupplierOutput::from(&supplier))
     }
 
-    async fn update(&self, id: Uuid, input: UpdateSupplierInput) -> Result<Supplier> {
+    async fn update(&self, id: Uuid, input: UpdateSupplierInput) -> Result<SupplierOutput> {
         let mut supplier = self
             .repo
             .find_by_id(id)
@@ -93,7 +93,7 @@ impl<R: SupplierRepository + Sync> ForSupplierUseCases for ForSupplierInteractor
         }
 
         self.repo.update(&supplier).await?;
-        Ok(supplier)
+        Ok(SupplierOutput::from(&supplier))
     }
 
     async fn delete(&self, id: Uuid) -> Result<()> {
@@ -101,8 +101,12 @@ impl<R: SupplierRepository + Sync> ForSupplierUseCases for ForSupplierInteractor
         Ok(())
     }
 
-    async fn search(&self, input: CriteriaInput) -> Result<PaginatedResult<Supplier>> {
+    async fn search(&self, input: CriteriaInput) -> Result<PaginatedResult<SupplierOutput>> {
         let criteria: Criteria<()> = input.try_into()?;
-        self.repo.search(criteria.into()).await
+        let result = self.repo.search(criteria.into()).await?;
+        Ok(PaginatedResult {
+            data: result.data.into_iter().map(|s| SupplierOutput::from(&s)).collect(),
+            meta: result.meta,
+        })
     }
 }

@@ -2,9 +2,8 @@ use tauri::State;
 use uuid::Uuid;
 
 use crate::application::dtos::shared::CriteriaInput;
-use crate::application::dtos::store::{CreateStoreInput, UpdateStoreInput};
+use crate::application::dtos::store::{CreateStoreInput, StoreOutput, UpdateStoreInput};
 use crate::application::use_cases::store::ForStoreUseCases;
-use crate::domain::entities::store::Store;
 use crate::infrastructure::di::AppState;
 use crate::shared::criteria::PaginatedResult;
 
@@ -12,7 +11,7 @@ use crate::shared::criteria::PaginatedResult;
 pub async fn create_store(
     state: State<'_, AppState>,
     input: CreateStoreInput,
-) -> Result<Store, String> {
+) -> Result<StoreOutput, String> {
     state
         .use_cases
         .store
@@ -26,7 +25,7 @@ pub async fn update_store(
     state: State<'_, AppState>,
     id: String,
     input: UpdateStoreInput,
-) -> Result<Store, String> {
+) -> Result<StoreOutput, String> {
     let uuid = Uuid::parse_str(&id).map_err(|e| e.to_string())?;
     state
         .use_cases
@@ -54,7 +53,7 @@ pub async fn delete_store(
 pub async fn search_stores(
     state: State<'_, AppState>,
     input: CriteriaInput,
-) -> Result<PaginatedResult<Store>, String> {
+) -> Result<PaginatedResult<StoreOutput>, String> {
     state
         .use_cases
         .store

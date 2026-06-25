@@ -7,15 +7,15 @@ use crate::domain::repositories::product::ProductRepository;
 
 use crate::shared::criteria::{Criteria, PaginatedResult};
 
-use super::super::dtos::product::{CreateProductInput, UpdateProductInput};
+use super::super::dtos::product::{CreateProductInput, ProductOutput, UpdateProductInput};
 use super::super::dtos::shared::CriteriaInput;
 
 #[async_trait]
 pub trait ForProductUseCases {
-    async fn create(&self, input: CreateProductInput) -> Result<Product>;
-    async fn update(&self, id: Uuid, input: UpdateProductInput) -> Result<Product>;
+    async fn create(&self, input: CreateProductInput) -> Result<ProductOutput>;
+    async fn update(&self, id: Uuid, input: UpdateProductInput) -> Result<ProductOutput>;
     async fn delete(&self, id: Uuid) -> Result<()>;
-    async fn search(&self, input: CriteriaInput) -> Result<PaginatedResult<Product>>;
+    async fn search(&self, input: CriteriaInput) -> Result<PaginatedResult<ProductOutput>>;
 }
 
 pub struct ForProductInteractor<R: ProductRepository> {
@@ -30,13 +30,13 @@ impl<R: ProductRepository> ForProductInteractor<R> {
 
 #[async_trait]
 impl<R: ProductRepository + Sync> ForProductUseCases for ForProductInteractor<R> {
-    async fn create(&self, input: CreateProductInput) -> Result<Product> {
+    async fn create(&self, input: CreateProductInput) -> Result<ProductOutput> {
         let price = input.parse_initial_price()?;
         let product = Product::new(input.product_code, input.name, price, input.active)?;
         self.repo.create(&product).await?;
-        Ok(product)
+        Ok(ProductOutput::from(&product))
     }
-    async fn update(&self, id: Uuid, input: UpdateProductInput) -> Result<Product> {
+    async fn update(&self, id: Uuid, input: UpdateProductInput) -> Result<ProductOutput> {
         let mut product = self
             .repo
             .find_by_id(id)
@@ -59,15 +59,19 @@ impl<R: ProductRepository + Sync> ForProductUseCases for ForProductInteractor<R>
         }
 
         self.repo.update(&product).await?;
-        Ok(product)
+        Ok(ProductOutput::from(&product))
     }
     async fn delete(&self, id: Uuid) -> Result<()> {
         self.repo.delete(id).await?;
         Ok(())
     }
 
-    async fn search(&self, input: CriteriaInput) -> Result<PaginatedResult<Product>> {
+    async fn search(&self, input: CriteriaInput) -> Result<PaginatedResult<ProductOutput>> {
         let criteria: Criteria<()> = input.try_into()?;
-        self.repo.search(criteria.into()).await
+        let result = self.repo.search(criteria.into()).await?;
+        Ok(PaginatedResult {
+            data: result.data.into_iter().map(|p| ProductOutput::from(&p)).collect(),
+            meta: result.meta,
+        })
     }
 }

@@ -1,8 +1,8 @@
-import { IconChevronRight, IconPackage } from "@tabler/icons-react";
-import { Link, useLocation, useMatchRoute } from "@tanstack/react-router";
-import type { ComponentProps } from "react";
 import { SIDEBAR_NAV } from "@/constants/sidebar";
 import type { SidebarLink } from "@/types/navigation";
+import { IconChevronRight, IconPackage } from "@tabler/icons-react";
+import { Link, useLocation } from "@tanstack/react-router";
+import type { ComponentProps } from "react";
 import {
   Collapsible,
   CollapsibleContent,

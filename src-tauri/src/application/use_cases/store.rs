@@ -9,14 +9,14 @@ use crate::domain::value_objects::common::{Code, Name, PhoneNumber, TextValue};
 use crate::shared::criteria::{Criteria, PaginatedResult};
 
 use super::super::dtos::shared::CriteriaInput;
-use super::super::dtos::store::{CreateStoreInput, UpdateStoreInput};
+use super::super::dtos::store::{CreateStoreInput, StoreOutput, UpdateStoreInput};
 
 #[async_trait]
 pub trait ForStoreUseCases {
-    async fn create(&self, input: CreateStoreInput) -> Result<Store>;
-    async fn update(&self, id: Uuid, input: UpdateStoreInput) -> Result<Store>;
+    async fn create(&self, input: CreateStoreInput) -> Result<StoreOutput>;
+    async fn update(&self, id: Uuid, input: UpdateStoreInput) -> Result<StoreOutput>;
     async fn delete(&self, id: Uuid) -> Result<()>;
-    async fn search(&self, input: CriteriaInput) -> Result<PaginatedResult<Store>>;
+    async fn search(&self, input: CriteriaInput) -> Result<PaginatedResult<StoreOutput>>;
 }
 
 pub struct ForStoreInteractor<R: StoreRepository> {
@@ -31,7 +31,7 @@ impl<R: StoreRepository> ForStoreInteractor<R> {
 
 #[async_trait]
 impl<R: StoreRepository + Sync> ForStoreUseCases for ForStoreInteractor<R> {
-    async fn create(&self, input: CreateStoreInput) -> Result<Store> {
+    async fn create(&self, input: CreateStoreInput) -> Result<StoreOutput> {
         if self.repo.exists_by_code(&input.store_code).await? {
             anyhow::bail!("A store with this code already exists");
         }
@@ -44,10 +44,10 @@ impl<R: StoreRepository + Sync> ForStoreUseCases for ForStoreInteractor<R> {
             input.active,
         )?;
         self.repo.create(&store).await?;
-        Ok(store)
+        Ok(StoreOutput::from(&store))
     }
 
-    async fn update(&self, id: Uuid, input: UpdateStoreInput) -> Result<Store> {
+    async fn update(&self, id: Uuid, input: UpdateStoreInput) -> Result<StoreOutput> {
         let mut store = self
             .repo
             .find_by_id(id)
@@ -83,7 +83,7 @@ impl<R: StoreRepository + Sync> ForStoreUseCases for ForStoreInteractor<R> {
         }
 
         self.repo.update(&store).await?;
-        Ok(store)
+        Ok(StoreOutput::from(&store))
     }
 
     async fn delete(&self, id: Uuid) -> Result<()> {
@@ -91,8 +91,12 @@ impl<R: StoreRepository + Sync> ForStoreUseCases for ForStoreInteractor<R> {
         Ok(())
     }
 
-    async fn search(&self, input: CriteriaInput) -> Result<PaginatedResult<Store>> {
+    async fn search(&self, input: CriteriaInput) -> Result<PaginatedResult<StoreOutput>> {
         let criteria: Criteria<()> = input.try_into()?;
-        self.repo.search(criteria.into()).await
+        let result = self.repo.search(criteria.into()).await?;
+        Ok(PaginatedResult {
+            data: result.data.into_iter().map(|s| StoreOutput::from(&s)).collect(),
+            meta: result.meta,
+        })
     }
 }

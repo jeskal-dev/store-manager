@@ -1,10 +1,9 @@
 use tauri::State;
 use uuid::Uuid;
 
-use crate::application::dtos::product::{CreateProductInput, UpdateProductInput};
+use crate::application::dtos::product::{CreateProductInput, ProductOutput, UpdateProductInput};
 use crate::application::dtos::shared::CriteriaInput;
 use crate::application::use_cases::product::ForProductUseCases;
-use crate::domain::entities::product::Product;
 use crate::infrastructure::di::AppState;
 use crate::shared::criteria::PaginatedResult;
 
@@ -12,7 +11,7 @@ use crate::shared::criteria::PaginatedResult;
 pub async fn create_product(
     state: State<'_, AppState>,
     input: CreateProductInput,
-) -> Result<Product, String> {
+) -> Result<ProductOutput, String> {
     state
         .use_cases
         .product
@@ -26,7 +25,7 @@ pub async fn update_product(
     state: State<'_, AppState>,
     id: String,
     input: UpdateProductInput,
-) -> Result<Product, String> {
+) -> Result<ProductOutput, String> {
     let uuid = Uuid::parse_str(&id).map_err(|e| e.to_string())?;
     state
         .use_cases
@@ -54,7 +53,7 @@ pub async fn delete_product(
 pub async fn search_products(
     state: State<'_, AppState>,
     input: CriteriaInput,
-) -> Result<PaginatedResult<Product>, String> {
+) -> Result<PaginatedResult<ProductOutput>, String> {
     state
         .use_cases
         .product

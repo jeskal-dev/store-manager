@@ -1,5 +1,7 @@
-use serde::Deserialize;
+use serde::{Deserialize, Serialize};
 use validator::Validate;
+
+use crate::domain::entities::store::Store;
 
 #[derive(Debug, Deserialize, Validate)]
 #[serde(rename_all = "camelCase")]
@@ -61,4 +63,28 @@ pub struct UpdateStoreInput {
     pub phone: Option<Option<String>>,
     #[serde(default)]
     pub active: Option<bool>,
+}
+
+#[derive(Debug, Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct StoreOutput {
+    pub id: String,
+    pub store_code: String,
+    pub name: String,
+    pub address: String,
+    pub phone: Option<String>,
+    pub active: bool,
+}
+
+impl From<&Store> for StoreOutput {
+    fn from(store: &Store) -> Self {
+        Self {
+            id: store.id.to_string(),
+            store_code: store.store_code.value().to_string(),
+            name: store.name.value().to_string(),
+            address: store.address.value().to_string(),
+            phone: store.phone.as_ref().map(|p| p.value().to_string()),
+            active: store.active,
+        }
+    }
 }

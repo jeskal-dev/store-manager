@@ -2,9 +2,8 @@ use tauri::State;
 use uuid::Uuid;
 
 use crate::application::dtos::shared::CriteriaInput;
-use crate::application::dtos::supplier::{CreateSupplierInput, UpdateSupplierInput};
+use crate::application::dtos::supplier::{CreateSupplierInput, SupplierOutput, UpdateSupplierInput};
 use crate::application::use_cases::supplier::ForSupplierUseCases;
-use crate::domain::entities::supplier::Supplier;
 use crate::infrastructure::di::AppState;
 use crate::shared::criteria::PaginatedResult;
 
@@ -12,7 +11,7 @@ use crate::shared::criteria::PaginatedResult;
 pub async fn create_supplier(
     state: State<'_, AppState>,
     input: CreateSupplierInput,
-) -> Result<Supplier, String> {
+) -> Result<SupplierOutput, String> {
     state
         .use_cases
         .supplier
@@ -26,7 +25,7 @@ pub async fn update_supplier(
     state: State<'_, AppState>,
     id: String,
     input: UpdateSupplierInput,
-) -> Result<Supplier, String> {
+) -> Result<SupplierOutput, String> {
     let uuid = Uuid::parse_str(&id).map_err(|e| e.to_string())?;
     state
         .use_cases
@@ -54,7 +53,7 @@ pub async fn delete_supplier(
 pub async fn search_suppliers(
     state: State<'_, AppState>,
     input: CriteriaInput,
-) -> Result<PaginatedResult<Supplier>, String> {
+) -> Result<PaginatedResult<SupplierOutput>, String> {
     state
         .use_cases
         .supplier
